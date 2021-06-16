@@ -25,9 +25,23 @@ public class LoginPanel : MonoBehaviour {
         loginButton.onClick.AddListener(OnLoginButtonClicked);
         Launcher._instance.onPlayfabLoginSuccess += HandleOnLoginSuccess;
         Launcher._instance.onPlayfabLoginFailed += HandleOnLoginFailed;
+        autoLoginToggle.onValueChanged.AddListener(onAutoLoginToggleTurnOff);
+        rememberAccountToggle.onValueChanged.AddListener(onRememberAccountToggleTurnOff);
         InitializeInputFieldAndAutoLogin();
     }
 
+    private void onAutoLoginToggleTurnOff(bool isOn)
+    {
+        if (!isOn) {
+            PlayerPrefs.SetInt("Auto_Login", 0);
+        }
+    }
+
+    private void onRememberAccountToggleTurnOff(bool isOn) {
+        if (!isOn && !autoLoginToggle.isOn) {
+            PlayerPrefs.SetInt("Remember_Account",0);
+        }
+    }
 
     void OnDestroy() {
         Launcher._instance.onPlayfabLoginSuccess -= HandleOnLoginSuccess;
@@ -42,29 +56,52 @@ public class LoginPanel : MonoBehaviour {
 
     private void OnLoginButtonClicked() {
         Launcher._instance.Login(usernameInputField.text,passwordInputField.text);
-        Launcher._instance.OpenInfoPanel("LAUNCHER_WAIT_LOGIN",true);
+        Launcher._instance.OpenInfoPanel("LAUNCHER_WAIT_LOGIN",Launcher._instance.CancelLogin
+            ,true);
     }
 
     private void HandleOnLoginSuccess() {
-        Launcher._instance.CloseInfoPanel();
+        
+
+        if (autoLoginToggle.isOn)
+        {
+            PlayerPrefs.SetInt("Auto_Login", 1);
+        }
+        else
+        {
+            PlayerPrefs.SetInt("Auto_Login", 0);
+        }
+
         if (rememberAccountToggle.isOn) {
             PlayerPrefs.SetInt("Remember_Account",1);
-            PlayerPrefs.SetString("Username",PlayfabUtilities.GetUsername());
-            PlayerPrefs.SetString("Password",passwordInputField.text);
+            PlayerPrefs.SetString("Password", passwordInputField.text);
+
+
+            PlayfabUtilities.GetUsername(username => {
+                PlayerPrefs.SetString("Username",username);
+                print("Get username");
+
+                OpenGame();
+            }, error => {
+                OpenGame();
+            });
+
+           
         }
         else {
             PlayerPrefs.SetInt("Remember_Account", 0);
             PlayerPrefs.SetString("Username","");
             PlayerPrefs.SetString("Password","");
+            OpenGame();
         }
 
-        if (autoLoginToggle.isOn) {
-            PlayerPrefs.SetInt("Auto_Login",1);
-        }
-        else {
-            PlayerPrefs.SetInt("Auto_Login", 0);
-        }
+
     }
+
+    private void OpenGame() {
+        Launcher._instance.CloseInfoPanel();
+    }
+
 
     private void InitializeInputFieldAndAutoLogin() {
         if (PlayerPrefs.GetInt("Remember_Account", 0) == 1) { //remember account
@@ -79,6 +116,7 @@ public class LoginPanel : MonoBehaviour {
         }
 
         if (PlayerPrefs.GetInt("Auto_Login", 0) == 1) { //auto login
+            autoLoginToggle.isOn = true;
             OnLoginButtonClicked();
         }
     }

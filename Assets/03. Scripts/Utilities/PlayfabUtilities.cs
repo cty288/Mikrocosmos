@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using PlayFab;
@@ -12,28 +13,21 @@ public static class PlayfabUtilities
     /// </summary>
     /// <param name="sessionTicket"></param>
     /// <returns></returns>
-    public static string GetPlayfabIdFromSessionTicket(string sessionTicket) {
+    public static void SetPlayfabIdFromSessionTicket(string sessionTicket) {
         string returned_result = "";
-        bool waiting = true;
         
         PlayFabServerAPI.AuthenticateSessionTicket(new AuthenticateSessionTicketRequest
         {
             SessionTicket = sessionTicket
         }, result => {
-            waiting = false;
             Debug.Log("got");
             returned_result = result.UserInfo.PlayFabId;
         }, error => {
-            waiting = false;
             Debug.Log(error.Error.ToString());
             returned_result = "";
         });
 
-        while (waiting) {
-
-        }
-
-        return returned_result;
+        PlayerPrefs.SetString("Playfab_Id",returned_result);
     }
 
     /// <summary>
@@ -60,20 +54,21 @@ public static class PlayfabUtilities
     }
 
     /// <summary>
-    /// Return the username of the current playfab player
+    /// Get the username based playfabid. Must be called after login/register
     /// </summary>
-    /// <returns></returns>
-    public static string GetUsername() {
+    /// <param name="onUserNameGet">Function called after name successfully get</param>
+    /// <param name="onError">Function called when error occurs</param>
+    public static void GetUsername(Action<string> onUserNameGet, Action<PlayFabError> onError) {
         string username = "";
         PlayFabClientAPI.GetAccountInfo(new GetAccountInfoRequest
         {
             PlayFabId = GetPlayFabIdFromPlayerPrefs()
         }, result => {
             username = result.AccountInfo.Username;
+            onUserNameGet?.Invoke(username);
         }, error => {
-
+            onError?.Invoke(error);
         });
-        return username;
     }
 
 

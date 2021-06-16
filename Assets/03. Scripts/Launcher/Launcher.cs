@@ -139,19 +139,13 @@ public class Launcher : MonoBehaviour {
     /// </summary>
     /// <param name="sessionTicket"></param>
     /// <param name="entityId"></param>
-    public bool SaveLoginToken(string sessionTicket, string entityId) {
-        string playfabid = PlayfabUtilities.GetPlayfabIdFromSessionTicket(sessionTicket);
-        
-        if (playfabid != "") {
-            PlayerPrefs.SetString("Session_Ticket", sessionTicket);
-            PlayerPrefs.SetString("Entity_Id", entityId);
-            PlayerPrefs.SetString("Playfab_Id", playfabid);
-            return true;
-        }
-
-        return false;
-
+    public void SaveLoginToken(string sessionTicket, string entityId) {
+        PlayfabUtilities.SetPlayfabIdFromSessionTicket(sessionTicket);
+        PlayerPrefs.SetString("Session_Ticket", sessionTicket);
+        PlayerPrefs.SetString("Entity_Id", entityId);
     }
+
+
 
     private bool loginCancelled = false;
     /// <summary>
@@ -166,21 +160,20 @@ public class Launcher : MonoBehaviour {
             Username = username,
             Password = pwd
         }, result => {
-            bool temp = SaveLoginToken(result.SessionTicket,result.EntityToken.Entity.Id);
-            print(temp);
-            if (temp) {
-                if (!loginCancelled) {
-                    onPlayfabLoginSuccess?.Invoke();
-                }
-                
+            if (!loginCancelled) {
+                onPlayfabLoginSuccess?.Invoke();
+                infoPanel.DisableCloseButton();
             }
-            else {
-                onPlayfabLoginFailed?.Invoke(new PlayFabError{Error = PlayFabErrorCode.ConnectionError});
-            }
-            
         }, error => {
             onPlayfabLoginFailed?.Invoke(error);
         });
+    }
+
+    /// <summary>
+    /// Cancel the login process (if the player is currently loging)
+    /// </summary>
+    public void CancelLogin() {
+        loginCancelled = true;
     }
     /// <summary>
     /// Open info panel and Set the info message of the info panel to a specific localized message
@@ -202,6 +195,32 @@ public class Launcher : MonoBehaviour {
         infoPanel.gameObject.SetActive(true);
         infoPanel.SetInfo(localizedMessageId,addWaitingPeriod);
     }
+    /// <summary>
+    /// Open info panel and Set the info message of the info panel to a specific localized message
+    /// </summary>
+    /// <param name="localizedMessageId">The localized id of the message</param>
+    /// <param name="onCloseButtonClickAction">Event triggered when the user clicks the close button (other than close the panel)</param>
+    /// <param name="addWaitingPeriod"></param>
+    public void OpenInfoPanel(string localizedMessageId, UnityAction onCloseButtonClickAction,
+        bool addWaitingPeriod = false) {
+        infoPanel.gameObject.SetActive(true);
+        infoPanel.SetInfo(localizedMessageId,onCloseButtonClickAction,addWaitingPeriod);
+    }
+
+    /// <summary>
+    /// Open info panel and Set the info message of the info panel to a specific localized message
+    /// </summary>
+    /// <param name="localizedMessageId">The localized id of the message</param>
+    /// <param name="onCloseButtonClickAction">Event triggered when the user clicks the close button (other than close the panel)</param>
+    /// <param name="addWaitingPeriod"></param>
+    /// <param name="parameters"></param>
+    public void OpenInfoPanel(string localizedMessageId, UnityAction onCloseButtonClickAction,
+        bool addWaitingPeriod = false, params object[] parameters)
+    {
+        infoPanel.gameObject.SetActive(true);
+        infoPanel.SetInfo(localizedMessageId, onCloseButtonClickAction, addWaitingPeriod,parameters);
+    }
+
     /// <summary>
     /// Close Info Panel
     /// </summary>
