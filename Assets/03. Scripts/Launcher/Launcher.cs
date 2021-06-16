@@ -135,29 +135,49 @@ public class Launcher : MonoBehaviour {
     }
 
     /// <summary>
-    /// Save Session Ticket and EntityId
+    /// Save Session Ticket, entity id and playfab id. Return true if successfully login
     /// </summary>
     /// <param name="sessionTicket"></param>
     /// <param name="entityId"></param>
-    public void SaveLoginToken(string sessionTicket, string entityId) {
-        PlayerPrefs.SetString("Session_Ticket",sessionTicket);
-        PlayerPrefs.SetString("Entity_Id",entityId);
+    public bool SaveLoginToken(string sessionTicket, string entityId) {
+        string playfabid = PlayfabUtilities.GetPlayfabIdFromSessionTicket(sessionTicket);
+        
+        if (playfabid != "") {
+            PlayerPrefs.SetString("Session_Ticket", sessionTicket);
+            PlayerPrefs.SetString("Entity_Id", entityId);
+            PlayerPrefs.SetString("Playfab_Id", playfabid);
+            return true;
+        }
+
+        return false;
+
     }
 
+    private bool loginCancelled = false;
     /// <summary>
     /// Login by username and password
     /// </summary>
     /// <param name="username">username</param>
     /// <param name="pwd">password</param>
     public void Login(string username,string pwd) {
-        
+        loginCancelled = false;
         PlayFabClientAPI.LoginWithPlayFab(new LoginWithPlayFabRequest()
         {
             Username = username,
             Password = pwd
         }, result => {
-            SaveLoginToken(result.SessionTicket,result.EntityToken.Entity.Id);
-            onPlayfabLoginSuccess?.Invoke();
+            bool temp = SaveLoginToken(result.SessionTicket,result.EntityToken.Entity.Id);
+            print(temp);
+            if (temp) {
+                if (!loginCancelled) {
+                    onPlayfabLoginSuccess?.Invoke();
+                }
+                
+            }
+            else {
+                onPlayfabLoginFailed?.Invoke(new PlayFabError{Error = PlayFabErrorCode.ConnectionError});
+            }
+            
         }, error => {
             onPlayfabLoginFailed?.Invoke(error);
         });

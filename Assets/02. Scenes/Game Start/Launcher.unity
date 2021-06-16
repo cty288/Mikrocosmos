@@ -7537,6 +7537,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   usernameInputField: {fileID: 802242336}
   passwordInputField: {fileID: 248023826}
+  rememberAccountToggle: {fileID: 1485620078}
+  autoLoginToggle: {fileID: 2070743868}
 --- !u!1 &1819438180
 GameObject:
   m_ObjectHideFlags: 0
@@ -9105,7 +9107,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9118301188079241525, guid: 4a516a5d92a66ed4ba11e24ac1ef38e1, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -0.020080566
+      value: -0.020019531
       objectReference: {fileID: 0}
     - target: {fileID: 9118301188079241525, guid: 4a516a5d92a66ed4ba11e24ac1ef38e1, type: 3}
       propertyPath: m_AnchoredPosition.y
