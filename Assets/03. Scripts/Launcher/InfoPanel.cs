@@ -20,7 +20,7 @@ public class InfoPanel : MonoBehaviour {
     [SerializeField]
     private bool hasCloseButton;
     private UnityAction onCloseEvent;
-    [SerializeField]
+
     private Button closeButton;
 
 
