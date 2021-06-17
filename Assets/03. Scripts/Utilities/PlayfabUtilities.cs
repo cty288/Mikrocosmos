@@ -13,7 +13,8 @@ public static class PlayfabUtilities
     /// </summary>
     /// <param name="sessionTicket"></param>
     /// <returns></returns>
-    public static void SetPlayfabIdFromSessionTicket(string sessionTicket) {
+    public static void SetPlayfabIdFromSessionTicket(string sessionTicket,
+        Action onSuccessfullySet,Action onSetFailed) {
         string returned_result = "";
         
         PlayFabServerAPI.AuthenticateSessionTicket(new AuthenticateSessionTicketRequest
@@ -22,12 +23,18 @@ public static class PlayfabUtilities
         }, result => {
             Debug.Log("got");
             returned_result = result.UserInfo.PlayFabId;
+
+            PlayerPrefs.SetString("Playfab_Id", returned_result);
+            onSuccessfullySet?.Invoke();
         }, error => {
             Debug.Log(error.Error.ToString());
             returned_result = "";
+            PlayerPrefs.SetString("Playfab_Id", returned_result);
+            onSetFailed?.Invoke();
+
         });
 
-        PlayerPrefs.SetString("Playfab_Id",returned_result);
+       
     }
 
     /// <summary>
@@ -68,6 +75,27 @@ public static class PlayfabUtilities
             onUserNameGet?.Invoke(username);
         }, error => {
             onError?.Invoke(error);
+        });
+    }
+
+    /// <summary>
+    /// Get Title ID of the game from PlayFab Server
+    /// </summary>
+    /// <param name="onSuccess"></param>
+    /// <param name="onFailed"></param>
+    public static void GetTitleID(Action<string> onSuccess,Action onFailed) {
+        PlayFabServerAPI.GetTitleData(new PlayFab.ServerModels.GetTitleDataRequest
+        {
+
+        }, result => {
+            if (result.Data != null & result.Data.ContainsKey("TestData"))
+            {
+                Debug.Log(result.Data["TitleID"]);
+                onSuccess?.Invoke(result.Data["TitleID"]);
+            }
+        }, error => {
+            Debug.Log(error.Error.ToString());
+            onFailed?.Invoke(); 
         });
     }
 
