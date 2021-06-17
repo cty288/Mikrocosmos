@@ -39,6 +39,7 @@ public class ForgotPasswordPanel : MonoBehaviour {
         animation.clip = animation.GetClip("ForgotPwdPanel");
         panelParent.anchoredPosition = new Vector2(0, 0);
         emailInputBox.InputField.text = "";
+        page = 1;
     }
 
     void Start() {
