@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using PlayFab;
 using Polyglot;
 using UnityEngine;
 using UnityEngine.Events;
@@ -17,10 +18,11 @@ public class InfoPanel : MonoBehaviour {
     private float timer = 0;
     private const int periodMaxNumber=3;
     private int currentPeriodNumber = 0;
-    [SerializeField]
+
     private bool hasCloseButton;
     private UnityAction onCloseEvent;
 
+    [SerializeField]
     private Button closeButton;
 
 

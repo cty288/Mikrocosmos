@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using PlayFab;
 using PlayFab.ClientModels;
+using PlayFab.ProfilesModels;
 using Polyglot;
 using UnityEditor;
 using UnityEngine;
@@ -135,14 +136,14 @@ public class Launcher : MonoBehaviour {
     }
 
     /// <summary>
-    /// Save Session Ticket, entity id and playfab id. Return true if successfully login
+    /// Save Session Ticket, entity id and playfab id.
     /// </summary>
     /// <param name="sessionTicket"></param>
     /// <param name="entityId"></param>
-    public void SaveLoginToken(string sessionTicket, string entityId) {
-        PlayfabUtilities.SetPlayfabIdFromSessionTicket(sessionTicket);
+    public void SaveLoginToken(string sessionTicket, string entityId, Action onSaveSuccess,Action onSaveFailed) {
         PlayerPrefs.SetString("Session_Ticket", sessionTicket);
         PlayerPrefs.SetString("Entity_Id", entityId);
+        PlayfabUtilities.SetPlayfabIdFromSessionTicket(sessionTicket, onSaveSuccess, onSaveFailed);
     }
 
 
@@ -161,8 +162,13 @@ public class Launcher : MonoBehaviour {
             Password = pwd
         }, result => {
             if (!loginCancelled) {
-                onPlayfabLoginSuccess?.Invoke();
-                infoPanel.DisableCloseButton();
+                SaveLoginToken(result.SessionTicket, result.EntityToken.Entity.Id,
+                    () => {
+                        onPlayfabLoginSuccess?.Invoke();
+                        infoPanel.DisableCloseButton();
+                    }, () => {
+                        onPlayfabLoginFailed?.Invoke(new PlayFabError{Error = PlayFabErrorCode.ConnectionError});
+                    });
             }
         }, error => {
             onPlayfabLoginFailed?.Invoke(error);
@@ -227,4 +233,29 @@ public class Launcher : MonoBehaviour {
     public void CloseInfoPanel() {
         infoPanel.gameObject.SetActive(false);
     }
+
+    /// <summary>
+    /// Verify if the email account exists in the game's system
+    /// </summary>
+    /// <param name="email"></param>
+    /// <param name="onEmailFind">event invoked when successfully find the corresponding account</param>
+    /// <param name="onEmailNotFound">event invoked when failed to find the account</param>
+    public void VerifyEmailAccountExistence(string email, Action<string> onEmailFind, Action onEmailNotFound) {
+        PlayFabClientAPI.LoginWithEmailAddress(new LoginWithEmailAddressRequest {
+            Email = email,
+            Password = "aewafo3j1o2jpjopfe"
+        }, result => {
+            onEmailFind?.Invoke(email);
+        }, error => {
+            print(error.Error.ToString());
+            if (error.Error == PlayFabErrorCode.InvalidEmailOrPassword) {
+                onEmailFind?.Invoke(email);
+            }
+            else {
+                onEmailNotFound?.Invoke();
+            }
+        });
+    }
+
+    
 }

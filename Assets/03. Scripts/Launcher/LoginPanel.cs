@@ -79,8 +79,6 @@ public class LoginPanel : MonoBehaviour {
 
             PlayfabUtilities.GetUsername(username => {
                 PlayerPrefs.SetString("Username",username);
-                print("Get username");
-
                 OpenGame();
             }, error => {
                 OpenGame();

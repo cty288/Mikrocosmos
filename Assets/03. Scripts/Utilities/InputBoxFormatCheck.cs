@@ -13,10 +13,12 @@ public enum InputBoxType {
     Email,
     Username,
     Password,
-    Playername
+    Playername,
+    EmailRecovery
 }
 public class InputBoxFormatCheck : MonoBehaviour {
     private TMP_InputField inputField;
+    public TMP_InputField InputField => inputField;
 
     [SerializeField] 
     private int minimumText = 0;
@@ -25,6 +27,7 @@ public class InputBoxFormatCheck : MonoBehaviour {
     private InputBoxType inputBoxType;
 
     private bool isSatisfied = false;
+    public bool IsSatisfied => isSatisfied;
 
     [SerializeField] private float playfabCheckingTimeInterval = 0.5f;
 
@@ -61,6 +64,9 @@ public class InputBoxFormatCheck : MonoBehaviour {
                     isSatisfied = IsPassword(inputField.text);
                     break;
                 case InputBoxType.Playername:
+                    break;
+                case InputBoxType.EmailRecovery:
+                    isSatisfied = IsEmailRecovery(inputField.text);
                     break;
             }
 
@@ -179,7 +185,20 @@ public class InputBoxFormatCheck : MonoBehaviour {
             return false;
         }
     }
+    private bool IsEmailRecovery(string strInput)
+    {
+        Regex reg = new Regex(@"\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}");
 
+        if (reg.IsMatch(strInput))
+        {
+            return true;
+        }
+        else
+        {
+            errorMessage = "LAUNCHER_EMAIL_ERROR_1";
+            return false;
+        }
+    }
     private bool CheckTimer()
     {
         if (timer > playfabCheckingTimeInterval) {

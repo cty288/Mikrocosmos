@@ -44,6 +44,7 @@ public class RegisterPanel : MonoBehaviour {
         }
     }
     void Update() {
+       
         success = true;
         foreach (VerifiedInputBox inputBox in items) {
             if (inputBox.HasError) {
@@ -57,19 +58,26 @@ public class RegisterPanel : MonoBehaviour {
 
     private void OnRegisterButtonClicked() {
         Launcher._instance.OpenInfoPanel("LAUNCHER_WAIT_LOGIN", true);
-
+        
         PlayFabClientAPI.RegisterPlayFabUser(new RegisterPlayFabUserRequest
         {
             Username = userNameInputField.text,
             Email = emailInputField.text,
             Password = passwordInputField.text
         }, result => {
-            Launcher._instance.CloseInfoPanel();
-            Launcher._instance.SaveLoginToken(result.SessionTicket, result.EntityToken.Entity.Id);
-            Debug.Log("Login Success");
+            Launcher._instance.SaveLoginToken(result.SessionTicket, result.EntityToken.Entity.Id,
+                () => {
+                    Launcher._instance.CloseInfoPanel();
+                    Debug.Log("Login Success");
+                }, () => {
+                    //Register success, but login failed
+                    Launcher._instance.CloseInfoPanel();
+                    Launcher._instance.SetErrorMessage("LAUNCHER_REGISTER_SUCCESS_LOGIN_FAILED");
+                });
+           
         }, error => {
             Launcher._instance.CloseInfoPanel();
-            Debug.Log(error.GenerateErrorReport());
+            Launcher._instance.SetErrorMessage("LAUNCHER_LOGIN_FAILED");
         });
     }
 }
