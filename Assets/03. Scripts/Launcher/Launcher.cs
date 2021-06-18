@@ -9,9 +9,10 @@ using Polyglot;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class Launcher : MonoBehaviour {
+public class Launcher : RootPanel {
     //TODO: auto login (session ticket save)
 
     public static Launcher _instance;
@@ -25,19 +26,7 @@ public class Launcher : MonoBehaviour {
     [SerializeField] 
     private GameObject noInternetPanel;
 
-    [SerializeField] 
-    private ErrorPanel errorPanel;
 
-    [SerializeField] private InfoPanel infoPanel;
-
-    /// <summary>
-    /// Invoked when login success on playfab
-    /// </summary>
-    public Action onPlayfabLoginSuccess;
-    /// <summary>
-    /// Invoked when login failed on Playfab
-    /// </summary>
-    public Action<PlayFabError> onPlayfabLoginFailed;
 
     void Awake() {
         _instance = this;
@@ -45,21 +34,23 @@ public class Launcher : MonoBehaviour {
         Screen.SetResolution(1280,720,false);
         SelectPanel(SearchButtonIndex("Login Button"));
         
+
+    }
+
+    void Start() {
         panelButtons[SearchButtonIndex("Register Button")].onClick.AddListener(OnRegisterButtonClicked);
         panelButtons[SearchButtonIndex("Settings Button")].onClick.AddListener(OnSettingsButtonClicked);
         panelButtons[SearchButtonIndex("Login Button")].onClick.AddListener(OnLoginButtonClicked);
 
-        InternetConnectivityChecker._instance.onInternetRecovered += HandleOnInternetRecovered;
-        InternetConnectivityChecker._instance.onInternetLostConnection += HandleOnInternetLost;
+        EventCenter.AddListener(EventType.LAUNCHER_OnLoginPanelLoginSuccess,OpenGame);
+        EventCenter.AddListener<string>(EventType.LAUNCHER_Error_Message, SetErrorMessage);
     }
 
     void OnDestroy() {
-        InternetConnectivityChecker._instance.onInternetRecovered -= HandleOnInternetRecovered;
-        InternetConnectivityChecker._instance.onInternetLostConnection -= HandleOnInternetLost;
+        EventCenter.RemoveListener(EventType.LAUNCHER_OnLoginPanelLoginSuccess, OpenGame);
+        EventCenter.RemoveListener<string>(EventType.LAUNCHER_Error_Message, SetErrorMessage);
     }
-    void Update() {
-        
-    }
+
     private void OnRegisterButtonClicked() {
         SelectPanel(SearchButtonIndex("Register Button"));
     }
@@ -107,31 +98,13 @@ public class Launcher : MonoBehaviour {
         }
     }
 
-    /// <summary>
-    /// Set the error message of the error panel to a specific localized message
-    /// </summary>
-    /// <param name="localizedMessageId">The localized id of the message</param>
-    /// <param name="parameters">Parameters of the localized message, if exists</param>
-    public void SetErrorMessage(string localizedMessageId, params object[] parameters)
-    {
-        errorPanel.gameObject.SetActive(true);
-        errorPanel.SetErrorMessage(localizedMessageId,parameters);
-    }
 
-    /// <summary>
-    /// Set the error message of the error panel to a specific localized message
-    /// </summary>
-    /// <param name="localizedMessageId">The localized id of the message</param>
-    public void SetErrorMessage(string localizedMessageId)
-    {
-        errorPanel.gameObject.SetActive(true);
-        errorPanel.SetErrorMessage(localizedMessageId);
-    }
-    private void HandleOnInternetRecovered() {
+
+    protected override void HandleOnInternetRecovered() {
         noInternetPanel.SetActive(false);
     }
 
-    private void HandleOnInternetLost() {
+    protected override void HandleOnInternetLost() {
         noInternetPanel.SetActive(true);
     }
 
@@ -164,15 +137,29 @@ public class Launcher : MonoBehaviour {
             if (!loginCancelled) {
                 SaveLoginToken(result.SessionTicket, result.EntityToken.Entity.Id,
                     () => {
-                        onPlayfabLoginSuccess?.Invoke();
+                        EventCenter.Broadcast(EventType.LAUNCHER_OnPlayFabLoginSuccess);
                         infoPanel.DisableCloseButton();
                     }, () => {
-                        onPlayfabLoginFailed?.Invoke(new PlayFabError{Error = PlayFabErrorCode.ConnectionError});
+                        EventCenter.Broadcast(EventType.LAUNCHER_OnPlayFabLoginFailed,
+                             new PlayFabError { Error = PlayFabErrorCode.ConnectionError});
                     });
             }
         }, error => {
-            onPlayfabLoginFailed?.Invoke(error);
+            //onPlayfabLoginFailed?.Invoke(error);
+            EventCenter.Broadcast(EventType.LAUNCHER_OnPlayFabLoginFailed);
         });
+    }
+
+
+    /// <summary>
+    /// Open the main game
+    /// </summary>
+    public void OpenGame()
+    {
+        PlayfabTokenPasser._instance.SaveToken(PlayfabUtilities.GetSessionTicket(),PlayfabUtilities.GetEntityId(),
+            PlayfabUtilities.GetPlayFabIdFromPlayerPrefs());
+        CloseInfoPanel();
+        SceneManager.LoadSceneAsync("Menu");
     }
 
     /// <summary>
@@ -181,58 +168,7 @@ public class Launcher : MonoBehaviour {
     public void CancelLogin() {
         loginCancelled = true;
     }
-    /// <summary>
-    /// Open info panel and Set the info message of the info panel to a specific localized message
-    /// </summary>
-    /// <param name="localizedMessageId">The localized id of the message</param>
-    /// <param name="parameters">Parameters of the localized message, if exists</param>
-    public void OpenInfoPanel(string localizedMessageId, bool addWaitingPeriod = false, params object[] parameters)
-    {
-        infoPanel.gameObject.SetActive(true);
-        infoPanel.SetInfo(localizedMessageId,addWaitingPeriod,parameters);
-    }
 
-    /// <summary>
-    /// Open info panel and Set the info message of the info panel to a specific localized message
-    /// </summary>
-    /// <param name="localizedMessageId">The localized id of the message</param>
-    public void OpenInfoPanel(string localizedMessageId,bool addWaitingPeriod = false)
-    {
-        infoPanel.gameObject.SetActive(true);
-        infoPanel.SetInfo(localizedMessageId,addWaitingPeriod);
-    }
-    /// <summary>
-    /// Open info panel and Set the info message of the info panel to a specific localized message
-    /// </summary>
-    /// <param name="localizedMessageId">The localized id of the message</param>
-    /// <param name="onCloseButtonClickAction">Event triggered when the user clicks the close button (other than close the panel)</param>
-    /// <param name="addWaitingPeriod"></param>
-    public void OpenInfoPanel(string localizedMessageId, UnityAction onCloseButtonClickAction,
-        bool addWaitingPeriod = false) {
-        infoPanel.gameObject.SetActive(true);
-        infoPanel.SetInfo(localizedMessageId,onCloseButtonClickAction,addWaitingPeriod);
-    }
-
-    /// <summary>
-    /// Open info panel and Set the info message of the info panel to a specific localized message
-    /// </summary>
-    /// <param name="localizedMessageId">The localized id of the message</param>
-    /// <param name="onCloseButtonClickAction">Event triggered when the user clicks the close button (other than close the panel)</param>
-    /// <param name="addWaitingPeriod"></param>
-    /// <param name="parameters"></param>
-    public void OpenInfoPanel(string localizedMessageId, UnityAction onCloseButtonClickAction,
-        bool addWaitingPeriod = false, params object[] parameters)
-    {
-        infoPanel.gameObject.SetActive(true);
-        infoPanel.SetInfo(localizedMessageId, onCloseButtonClickAction, addWaitingPeriod,parameters);
-    }
-
-    /// <summary>
-    /// Close Info Panel
-    /// </summary>
-    public void CloseInfoPanel() {
-        infoPanel.gameObject.SetActive(false);
-    }
 
     /// <summary>
     /// Verify if the email account exists in the game's system

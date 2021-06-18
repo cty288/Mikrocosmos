@@ -668,3 +668,7 @@ LAUNCHER_EMAIL_NOT_FOUND		Unanle to find the account that associated with the em
 LAUNCHER_ACCOUNT_RECOVERY_STEP2		We have sent your email a recovery notification. Please open the recovery link that specified in the email and reset your password. If you haven't receieved it yet, try to press the resend button																	我们已向你的电子邮箱发送了一封账户恢复邮件。请进入该邮件中的恢复链接，并根据指示重置你的账户密码。如果你尚未收到该邮件，请尝试再次发送	我們已向你的電子郵箱發送了一封賬戶恢復郵件。請進入該郵件中的恢復鏈接，並根據指示重置你的賬戶密碼。如果你尚未收到該郵件，請嘗試再次發送									
 LAUNCHER_ACCOUNT_RECOVERY_RESEND_HAS_TIMER	{0} is time remaining	Resend({0})																	重新发送({0})	重新發送({0})									
 LAUNCHER_ACCOUNT_RECOVERY_RESEND		Resend																	重新发送	重新發送									
+MENU_NEW_USER?		New User?																	新玩家？	新玩家？									
+MENU_NEW_USER_SUBTITLE		Give yourself a cooool name!																	为自己取一个炫酷的名字吧！	為自己取一個炫酷的名字吧！									
+MENU_USER_NAME_RULE		Between 2-16 characters. Characters, numbers, or symbols are allowed																	长度在2-16位之间。可以使用任意字符、数字或符号的组合	長度在2-16位之間。可以使用任意字符、數字或符號的組合									
+MENU_USER_NAME_CONFIRM		I confirm!																	我想好了!	我想好了!									
