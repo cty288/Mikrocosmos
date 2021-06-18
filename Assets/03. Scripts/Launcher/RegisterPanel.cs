@@ -67,17 +67,17 @@ public class RegisterPanel : MonoBehaviour {
         }, result => {
             Launcher._instance.SaveLoginToken(result.SessionTicket, result.EntityToken.Entity.Id,
                 () => {
-                    Launcher._instance.CloseInfoPanel();
+                    EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
                     Debug.Log("Login Success");
                 }, () => {
                     //Register success, but login failed
                     Launcher._instance.CloseInfoPanel();
-                    Launcher._instance.SetErrorMessage("LAUNCHER_REGISTER_SUCCESS_LOGIN_FAILED");
+                    EventCenter.Broadcast(EventType.LAUNCHER_Error_Message, "LAUNCHER_REGISTER_SUCCESS_LOGIN_FAILED");
                 });
            
         }, error => {
             Launcher._instance.CloseInfoPanel();
-            Launcher._instance.SetErrorMessage("LAUNCHER_LOGIN_FAILED");
+            EventCenter.Broadcast(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_FAILED");
         });
     }
 }

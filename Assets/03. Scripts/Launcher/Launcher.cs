@@ -30,32 +30,33 @@ public class Launcher : MonoBehaviour {
 
     [SerializeField] private InfoPanel infoPanel;
 
-    /// <summary>
-    /// Invoked when login success on playfab
-    /// </summary>
-    public Action onPlayfabLoginSuccess;
-    /// <summary>
-    /// Invoked when login failed on Playfab
-    /// </summary>
-    public Action<PlayFabError> onPlayfabLoginFailed;
-
     void Awake() {
         _instance = this;
 
         Screen.SetResolution(1280,720,false);
         SelectPanel(SearchButtonIndex("Login Button"));
         
+
+    }
+
+    void Start() {
         panelButtons[SearchButtonIndex("Register Button")].onClick.AddListener(OnRegisterButtonClicked);
         panelButtons[SearchButtonIndex("Settings Button")].onClick.AddListener(OnSettingsButtonClicked);
         panelButtons[SearchButtonIndex("Login Button")].onClick.AddListener(OnLoginButtonClicked);
 
-        InternetConnectivityChecker._instance.onInternetRecovered += HandleOnInternetRecovered;
-        InternetConnectivityChecker._instance.onInternetLostConnection += HandleOnInternetLost;
+        EventCenter.AddListener(EventType.INTERNET_OnInternetConnectionRecover,HandleOnInternetRecovered);
+        EventCenter.AddListener(EventType.INTERNET_OnInternetLostConnection, HandleOnInternetLost);
+
+        EventCenter.AddListener(EventType.LAUNCHER_OnLoginPanelLoginSuccess,OpenGame);
+        EventCenter.AddListener<string>(EventType.LAUNCHER_Error_Message, SetErrorMessage);
     }
 
     void OnDestroy() {
-        InternetConnectivityChecker._instance.onInternetRecovered -= HandleOnInternetRecovered;
-        InternetConnectivityChecker._instance.onInternetLostConnection -= HandleOnInternetLost;
+        EventCenter.RemoveListener(EventType.INTERNET_OnInternetConnectionRecover, HandleOnInternetRecovered);
+        EventCenter.RemoveListener(EventType.INTERNET_OnInternetLostConnection, HandleOnInternetLost);
+
+        EventCenter.RemoveListener(EventType.LAUNCHER_OnLoginPanelLoginSuccess, OpenGame);
+        EventCenter.RemoveListener<string>(EventType.LAUNCHER_Error_Message, SetErrorMessage);
     }
     void Update() {
         
@@ -120,6 +121,7 @@ public class Launcher : MonoBehaviour {
 
     /// <summary>
     /// Set the error message of the error panel to a specific localized message
+    /// Recommend to trigger "LAUNCHER_Error_Message" event instead of directly call this method
     /// </summary>
     /// <param name="localizedMessageId">The localized id of the message</param>
     public void SetErrorMessage(string localizedMessageId)
@@ -164,15 +166,26 @@ public class Launcher : MonoBehaviour {
             if (!loginCancelled) {
                 SaveLoginToken(result.SessionTicket, result.EntityToken.Entity.Id,
                     () => {
-                        onPlayfabLoginSuccess?.Invoke();
+                        EventCenter.Broadcast(EventType.LAUNCHER_OnPlayFabLoginSuccess);
                         infoPanel.DisableCloseButton();
                     }, () => {
-                        onPlayfabLoginFailed?.Invoke(new PlayFabError{Error = PlayFabErrorCode.ConnectionError});
+                        EventCenter.Broadcast(EventType.LAUNCHER_OnPlayFabLoginFailed,
+                             new PlayFabError { Error = PlayFabErrorCode.ConnectionError});
                     });
             }
         }, error => {
-            onPlayfabLoginFailed?.Invoke(error);
+            //onPlayfabLoginFailed?.Invoke(error);
+            EventCenter.Broadcast(EventType.LAUNCHER_OnPlayFabLoginFailed);
         });
+    }
+
+
+    /// <summary>
+    /// Open the main game
+    /// </summary>
+    public void OpenGame()
+    {
+        CloseInfoPanel();
     }
 
     /// <summary>

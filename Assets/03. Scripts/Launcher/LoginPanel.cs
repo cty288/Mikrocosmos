@@ -23,10 +23,12 @@ public class LoginPanel : MonoBehaviour {
     }
     void Start() {
         loginButton.onClick.AddListener(OnLoginButtonClicked);
-        Launcher._instance.onPlayfabLoginSuccess += HandleOnLoginSuccess;
-        Launcher._instance.onPlayfabLoginFailed += HandleOnLoginFailed;
         autoLoginToggle.onValueChanged.AddListener(onAutoLoginToggleTurnOff);
         rememberAccountToggle.onValueChanged.AddListener(onRememberAccountToggleTurnOff);
+
+        EventCenter.AddListener(EventType.LAUNCHER_OnPlayFabLoginSuccess,HandleOnLoginSuccess);
+        EventCenter.AddListener<PlayFabError>(EventType.LAUNCHER_OnPlayFabLoginFailed,HandleOnLoginFailed);
+
         InitializeInputFieldAndAutoLogin();
     }
 
@@ -44,8 +46,8 @@ public class LoginPanel : MonoBehaviour {
     }
 
     void OnDestroy() {
-        Launcher._instance.onPlayfabLoginSuccess -= HandleOnLoginSuccess;
-        Launcher._instance.onPlayfabLoginFailed -= HandleOnLoginFailed;
+        EventCenter.RemoveListener(EventType.LAUNCHER_OnPlayFabLoginSuccess, HandleOnLoginSuccess);
+        EventCenter.RemoveListener<PlayFabError>(EventType.LAUNCHER_OnPlayFabLoginFailed, HandleOnLoginFailed);
     }
     void Update()
     {
@@ -79,9 +81,9 @@ public class LoginPanel : MonoBehaviour {
 
             PlayfabUtilities.GetUsername(username => {
                 PlayerPrefs.SetString("Username",username);
-                OpenGame();
+                EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
             }, error => {
-                OpenGame();
+                EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
             });
 
            
@@ -90,15 +92,13 @@ public class LoginPanel : MonoBehaviour {
             PlayerPrefs.SetInt("Remember_Account", 0);
             PlayerPrefs.SetString("Username","");
             PlayerPrefs.SetString("Password","");
-            OpenGame();
+            EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
         }
 
 
     }
 
-    private void OpenGame() {
-        Launcher._instance.CloseInfoPanel();
-    }
+
 
 
     private void InitializeInputFieldAndAutoLogin() {
@@ -122,7 +122,7 @@ public class LoginPanel : MonoBehaviour {
     private void HandleOnLoginFailed(PlayFabError error)
     {
         Launcher._instance.CloseInfoPanel();
-        Launcher._instance.SetErrorMessage("LAUNCHER_LOGIN_FAILED");
+        EventCenter.Broadcast(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_FAILED");
     }
 
 

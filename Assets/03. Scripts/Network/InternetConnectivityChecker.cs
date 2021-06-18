@@ -17,14 +17,7 @@ public class InternetConnectivityChecker : MonoBehaviour {
     /// </summary>
     public bool HasConnectivity => hasConnectivity;
 
-    /// <summary>
-    /// Called at the point when the internet lost the connection
-    /// </summary>
-    public Action onInternetLostConnection;
-    /// <summary>
-    /// Called at the point when the internet recovers
-    /// </summary>
-    public Action onInternetRecovered;
+
 
     [SerializeField] 
     private float checkingTimeInterval = 1f;
@@ -40,10 +33,10 @@ public class InternetConnectivityChecker : MonoBehaviour {
         if (lastConnectivity != hasConnectivity) {
             lastConnectivity = hasConnectivity;
             if (hasConnectivity) {
-                onInternetRecovered?.Invoke();
+                EventCenter.Broadcast(EventType.INTERNET_OnInternetConnectionRecover);
             }
             else {
-                onInternetLostConnection?.Invoke();
+                EventCenter.Broadcast(EventType.INTERNET_OnInternetLostConnection);
             }
         }
 
