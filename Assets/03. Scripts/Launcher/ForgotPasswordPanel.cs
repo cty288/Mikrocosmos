@@ -38,10 +38,14 @@ public class ForgotPasswordPanel : MonoBehaviour {
     private void OnEnable() {
         animation.clip = animation.GetClip("ForgotPwdPanel");
         panelParent.anchoredPosition = new Vector2(0, 0);
-        emailInputBox.InputField.text = "";
+        StartCoroutine(ResetEmailInputBox());
         page = 1;
     }
 
+    private IEnumerator ResetEmailInputBox() {
+        yield return new WaitForSeconds(0.2f);
+        emailInputBox.InputField.text = "";
+    }
     void Start() {
         page1ContinueButton.onClick.AddListener(OnPage1ContinueButtonClicked);
         exitButton.onClick.AddListener(onExitButtonClicked);
