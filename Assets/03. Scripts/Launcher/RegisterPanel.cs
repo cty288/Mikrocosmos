@@ -67,6 +67,7 @@ public class RegisterPanel : MonoBehaviour {
         }, result => {
             Launcher._instance.SaveLoginToken(result.SessionTicket, result.EntityToken.Entity.Id,
                 () => {
+                    
                     EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
                     Debug.Log("Login Success");
                 }, () => {
