@@ -35,8 +35,12 @@ public class RootPanel : MonoBehaviour
     /// <param name="parameters">Parameters of the localized message, if exists</param>
     public void SetErrorMessage(string localizedMessageId, params object[] parameters)
     {
-        errorPanel.gameObject.SetActive(true);
-        errorPanel.SetErrorMessage(localizedMessageId, parameters);
+        if (errorPanel)
+        {
+            errorPanel.gameObject.SetActive(true);
+            errorPanel.SetErrorMessage(localizedMessageId, parameters);
+        }
+
     }
 
     /// <summary>
@@ -47,8 +51,11 @@ public class RootPanel : MonoBehaviour
     ///<param name="localizedButtonText">Localized text shown on the close button</param>
     public void SetErrorMessage(string localizedMessageId,UnityAction onCloseButtonClicked,string localizedButtonText)
     {
-        errorPanel.gameObject.SetActive(true);
-        errorPanel.SetErrorMessage(localizedMessageId, onCloseButtonClicked,localizedButtonText);
+        if (errorPanel) {
+            errorPanel.gameObject.SetActive(true);
+            errorPanel.SetErrorMessage(localizedMessageId, onCloseButtonClicked, localizedButtonText);
+        }
+        
     }
 
     /// <summary>
@@ -61,8 +68,11 @@ public class RootPanel : MonoBehaviour
     public void SetErrorMessage(string localizedMessageId, UnityAction oncloseButtonClicked,
         string localizedButtonText, params object[] parameters)
     {
-        errorPanel.gameObject.SetActive(true);
-        errorPanel.SetErrorMessage(localizedMessageId,oncloseButtonClicked,localizedButtonText,parameters);
+        if (errorPanel) {
+            errorPanel.gameObject.SetActive(true);
+            errorPanel.SetErrorMessage(localizedMessageId, oncloseButtonClicked, localizedButtonText, parameters);
+        }
+
     }
 
 
@@ -72,8 +82,10 @@ public class RootPanel : MonoBehaviour
     /// <param name="localizedMessageId">The localized id of the message</param>
     public void SetErrorMessage(string localizedMessageId)
     {
-        errorPanel.gameObject.SetActive(true);
-        errorPanel.SetErrorMessage(localizedMessageId);
+        if (errorPanel) {
+            errorPanel.gameObject.SetActive(true);
+            errorPanel.SetErrorMessage(localizedMessageId);
+        }
     }
 
     /// <summary>
@@ -83,8 +95,12 @@ public class RootPanel : MonoBehaviour
     /// <param name="parameters">Parameters of the localized message, if exists</param>
     public void OpenInfoPanel(string localizedMessageId, bool addWaitingPeriod = false, params object[] parameters)
     {
-        infoPanel.gameObject.SetActive(true);
-        infoPanel.SetInfo(localizedMessageId, addWaitingPeriod, parameters);
+        if (infoPanel)
+        {
+            infoPanel.gameObject.SetActive(true);
+            infoPanel.SetInfo(localizedMessageId, addWaitingPeriod, parameters);
+        }
+
     }
 
     /// <summary>
@@ -93,8 +109,12 @@ public class RootPanel : MonoBehaviour
     /// <param name="localizedMessageId">The localized id of the message</param>
     public void OpenInfoPanel(string localizedMessageId, bool addWaitingPeriod = false)
     {
-        infoPanel.gameObject.SetActive(true);
-        infoPanel.SetInfo(localizedMessageId, addWaitingPeriod);
+        if (infoPanel)
+        {
+            infoPanel.gameObject.SetActive(true);
+            infoPanel.SetInfo(localizedMessageId, addWaitingPeriod);
+        }
+
     }
     /// <summary>
     /// Open info panel and Set the info message of the info panel to a specific localized message
@@ -105,8 +125,12 @@ public class RootPanel : MonoBehaviour
     public void OpenInfoPanel(string localizedMessageId, UnityAction onCloseButtonClickAction,
         bool addWaitingPeriod = false)
     {
-        infoPanel.gameObject.SetActive(true);
-        infoPanel.SetInfo(localizedMessageId, onCloseButtonClickAction, addWaitingPeriod);
+        if (infoPanel)
+        {
+            infoPanel.gameObject.SetActive(true);
+            infoPanel.SetInfo(localizedMessageId, onCloseButtonClickAction, addWaitingPeriod);
+        }
+
     }
 
     /// <summary>
@@ -119,8 +143,12 @@ public class RootPanel : MonoBehaviour
     public void OpenInfoPanel(string localizedMessageId, UnityAction onCloseButtonClickAction,
         bool addWaitingPeriod = false, params object[] parameters)
     {
-        infoPanel.gameObject.SetActive(true);
-        infoPanel.SetInfo(localizedMessageId, onCloseButtonClickAction, addWaitingPeriod, parameters);
+        if (infoPanel)
+        {
+            infoPanel.gameObject.SetActive(true);
+            infoPanel.SetInfo(localizedMessageId, onCloseButtonClickAction, addWaitingPeriod, parameters);
+        }
+
     }
 
     /// <summary>

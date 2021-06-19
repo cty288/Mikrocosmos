@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Mirror;
 using PlayFab;
 using PlayFab.ClientModels;
 using UnityEngine;
@@ -107,7 +109,10 @@ public class MenuManager : RootPanel {
 
     private void HandleOnUserEnterMenu() {
         print("Old User enter game");
+        //TODO: Loading bar loading; while loading, try connect to the Master Server.
+        NetworkManager.singleton.StartClient();
     }
+
     #endregion
 
 
@@ -126,5 +131,16 @@ public class MenuManager : RootPanel {
     public void StopWaiting()
     {
         EventCenter.Broadcast(EventType.MENU_StopWaitingNetworkResponse);
+    }
+
+    public void UpdateAndSaveDisplayName(string newName,Action<string> onSuccess,Action<PlayFabError> onFailed) {
+        PlayfabUtilities.UpdateDisplayName(newName,
+            (displayName) => {
+                PlayfabTokenPasser._instance.SavePlayerName(displayName);
+                onSuccess?.Invoke(displayName);
+            }, error => {
+                MenuManager._instance.StopWaiting();
+                onFailed?.Invoke(error);
+            });
     }
 }
