@@ -672,3 +672,9 @@ MENU_NEW_USER?		New User?																	新玩家？	新玩家？
 MENU_NEW_USER_SUBTITLE		Give yourself a cooool name!																	为自己取一个炫酷的名字吧！	為自己取一個炫酷的名字吧！									
 MENU_USER_NAME_RULE		Between 2-16 characters. Characters, numbers, or symbols are allowed																	长度在2-16位之间。可以使用任意字符、数字或符号的组合	長度在2-16位之間。可以使用任意字符、數字或符號的組合									
 MENU_USER_NAME_CONFIRM		I confirm!																	我想好了!	我想好了!									
+MENU_RETRY		Retry																	重试	重試									
+MENU_USER_NAME_RULE_ERROR1		Your display name's length should be at least 2																	你的游戏名长度需至少2位	你的遊戲名長度需至少2位									
+MENU_USER_NAME_CREATE_SUCCESS		Successfully setup your player!																	成功创建角色!	成功創建角色!									
+MENU_USER_NAME_RULE_ERROR2		This name already exists! Please try a new one.																	该游戏名字已存在!	該遊戲名字已存在!									
+MENU_USER_NAME_RULE_ERROR3		The name does not meet our naming rules or contains blocked words, please try again!																	该游戏名称不符合规范或包含屏蔽词汇，请重新再试！	該遊戲名稱不符合規範或包含屏蔽詞彙，請重新再試！									
+MENU_UNKNOWN_ERROR		An unknown error has occurred																	发生未知错误!	發生未知錯誤!									

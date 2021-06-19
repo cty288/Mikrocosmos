@@ -22,14 +22,20 @@ public class LoadingCircle : MonoBehaviour {
     /// Start playing the animation
     /// </summary>
     public void StartLoadingCircle() {
-        animation.gameObject.SetActive(true);
-        animation.Play();
+        if (animation) {
+            animation.gameObject.SetActive(true);
+            animation.Play();
+        }
+
     }
     /// <summary>
     /// stop playing the animation
     /// </summary>
     public void StopLoadingCircle() {
-        animation.gameObject.SetActive(false);
-        animation.Stop();
+        if (animation) {
+            animation.gameObject.SetActive(false);
+            animation.Stop();
+        }
+
     }
 }

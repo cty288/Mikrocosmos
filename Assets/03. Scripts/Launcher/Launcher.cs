@@ -146,7 +146,8 @@ public class Launcher : RootPanel {
             }
         }, error => {
             //onPlayfabLoginFailed?.Invoke(error);
-            EventCenter.Broadcast(EventType.LAUNCHER_OnPlayFabLoginFailed);
+            EventCenter.Broadcast
+                <PlayFabError>(EventType.LAUNCHER_OnPlayFabLoginFailed,error);
         });
     }
 

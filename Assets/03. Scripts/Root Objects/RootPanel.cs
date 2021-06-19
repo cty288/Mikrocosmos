@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Polyglot;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -40,7 +41,33 @@ public class RootPanel : MonoBehaviour
 
     /// <summary>
     /// Set the error message of the error panel to a specific localized message
-    /// Recommend to trigger "LAUNCHER_Error_Message" event instead of directly call this method
+    /// </summary>
+    /// <param name="localizedMessageId">The localized id of the message</param>
+    /// <param name="onCloseButtonClicked">Event Triggered when the close button is clicked</param>
+    ///<param name="localizedButtonText">Localized text shown on the close button</param>
+    public void SetErrorMessage(string localizedMessageId,UnityAction onCloseButtonClicked,string localizedButtonText)
+    {
+        errorPanel.gameObject.SetActive(true);
+        errorPanel.SetErrorMessage(localizedMessageId, onCloseButtonClicked,localizedButtonText);
+    }
+
+    /// <summary>
+    /// Set the error message of the error panel to a specific localized message
+    /// </summary>
+    /// <param name="localizedMessageId">The localized id of the message</param>
+    /// <param name="parameters">Parameters of the localized message, if exists</param>
+    /// <param name="localizedButtonText">Localized text shown on the close button</param>
+    /// <param name="onCloseButtonClicked">Event Triggered when the close button is clicked</param>
+    public void SetErrorMessage(string localizedMessageId, UnityAction oncloseButtonClicked,
+        string localizedButtonText, params object[] parameters)
+    {
+        errorPanel.gameObject.SetActive(true);
+        errorPanel.SetErrorMessage(localizedMessageId,oncloseButtonClicked,localizedButtonText,parameters);
+    }
+
+
+    /// <summary>
+    /// Set the error message of the error panel to a specific localized message
     /// </summary>
     /// <param name="localizedMessageId">The localized id of the message</param>
     public void SetErrorMessage(string localizedMessageId)

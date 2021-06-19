@@ -786,3 +786,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   errorMessage: {fileID: 3394789755283781445}
+  buttonText: {fileID: 3835664667991959426}
+  closeButton: {fileID: 8077957122519593695}

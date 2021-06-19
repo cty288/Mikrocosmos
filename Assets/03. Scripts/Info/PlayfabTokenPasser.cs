@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayfabTokenPasser : MonoBehaviour {
     public static PlayfabTokenPasser _instance;
 
-    public PlayfabToken token;
+    private PlayfabToken token;
     public PlayfabToken Token => token;
 
     void Awake() {
@@ -25,6 +25,10 @@ public class PlayfabTokenPasser : MonoBehaviour {
         token.EntityId = entityId;
         token.PlayfabId = playfabId;
     }
+
+    public void SavePlayerName(string playerName) {
+        token.PlayerName = playerName;
+    }
 }
 
 /// <summary>
@@ -32,4 +36,5 @@ public class PlayfabTokenPasser : MonoBehaviour {
 /// </summary>
 public struct PlayfabToken {
     public string SessionTicket, EntityId, PlayfabId;
+    public string PlayerName;
 }

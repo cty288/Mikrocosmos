@@ -64,6 +64,7 @@ public class InputBoxFormatCheck : MonoBehaviour {
                     isSatisfied = IsPassword(inputField.text);
                     break;
                 case InputBoxType.Playername:
+                    isSatisfied = IsPlayerName(inputField.text);
                     break;
                 case InputBoxType.EmailRecovery:
                     isSatisfied = IsEmailRecovery(inputField.text);
@@ -199,6 +200,19 @@ public class InputBoxFormatCheck : MonoBehaviour {
             return false;
         }
     }
+    private bool IsPlayerName(string strInput)
+    {
+        if (strInput.Length > 2)
+        {
+            return true;
+        }
+        else
+        {
+            errorMessage = "MENU_USER_NAME_RULE_ERROR1";
+            return false;
+        }
+    }
+
     private bool CheckTimer()
     {
         if (timer > playfabCheckingTimeInterval) {

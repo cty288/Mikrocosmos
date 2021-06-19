@@ -5,6 +5,8 @@ using PlayFab;
 using PlayFab.ClientModels;
 using PlayFab.ServerModels;
 using UnityEngine;
+using UnityEngine.Events;
+using GetPlayerProfileRequest = PlayFab.ClientModels.GetPlayerProfileRequest;
 
 public static class PlayfabUtilities
 {
@@ -46,18 +48,18 @@ public static class PlayfabUtilities
     }
 
     /// <summary>
-    /// return session ticket from local device. Only call this after the player logins/registers
+    /// return session ticket from token passer. Only call this after the player logins/registers
     /// </summary>
     /// <returns></returns>
     public static string GetSessionTicket() {
-        return PlayerPrefs.GetString("Session_Ticket");
+        return PlayfabTokenPasser._instance.Token.SessionTicket;
     }
     /// <summary>
-    ///  return entity id from local device. Only call this after the player logins/registers
+    ///  return entity id from token passer. Only call this after the player logins/registers
     /// </summary>
     /// <returns></returns>
     public static string GetEntityId() {
-        return PlayerPrefs.GetString("Entity_Id");
+        return PlayfabTokenPasser._instance.Token.EntityId;
     }
 
     /// <summary>
@@ -79,6 +81,29 @@ public static class PlayfabUtilities
     }
 
     /// <summary>
+    /// Get Player name. Must be called after login/register and successfully setup a display name
+    /// </summary>
+    /// <returns></returns>
+    public static string GetPlayerName() {
+        return PlayfabTokenPasser._instance.Token.PlayerName;
+    }
+
+    /// <summary>
+    /// Update the player's display name to Playfab Server. Must be called after login
+    /// </summary>
+    /// <param name="onSuccess">Event triggered after successfully set name</param>
+    /// <param name="onFailed">Event triggered after set failed</param>
+    public static void UpdateDisplayName(string newName, Action<string> onSuccess, Action<PlayFabError> onFailed) {
+        PlayFabClientAPI.UpdateUserTitleDisplayName(new UpdateUserTitleDisplayNameRequest {
+            DisplayName = newName
+        }, result => {
+            onSuccess?.Invoke(newName);
+        }, error => {
+            onFailed?.Invoke(error);
+        });
+    }
+
+    /// <summary>
     /// Get Title ID of the game from PlayFab Server
     /// </summary>
     /// <param name="onSuccess"></param>
@@ -88,7 +113,7 @@ public static class PlayfabUtilities
         {
 
         }, result => {
-            if (result.Data != null & result.Data.ContainsKey("TestData"))
+            if (result.Data != null & result.Data.ContainsKey("TitleID"))
             {
                 Debug.Log(result.Data["TitleID"]);
                 onSuccess?.Invoke(result.Data["TitleID"]);
@@ -98,6 +123,8 @@ public static class PlayfabUtilities
             onFailed?.Invoke(); 
         });
     }
+
+    
 
 
 }
