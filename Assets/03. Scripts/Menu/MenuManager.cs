@@ -39,13 +39,15 @@ public class MenuManager : RootPanel {
     /// </summary>
     /// <returns></returns>
     private IEnumerator LateStart() {
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.3f);
         CheckFirstTimeUser();
     }
 
     private void OnStartAddListeners() {
         EventCenter.AddListener(EventType.MENU_OnNewUserEnterMenu, HandleOpenNewUserPanel);
         EventCenter.AddListener(EventType.MENU_OnUserEnterMenu,HandleOnUserEnterMenu);
+        EventCenter.AddListener(EventType.MIRROR_OnMirrorConnectSuccess,HandleOnEnterMasterServerSuccess);
+        EventCenter.AddListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
 
         EventCenter.AddListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
         EventCenter.AddListener(EventType.MENU_WaitingNetworkResponse,HandleStartLoadingCircle);
@@ -60,6 +62,9 @@ public class MenuManager : RootPanel {
         EventCenter.RemoveListener(EventType.MENU_WaitingNetworkResponse, HandleStartLoadingCircle);
         EventCenter.RemoveListener(EventType.MENU_StopWaitingNetworkResponse, HandleStopLoadingCircle);
         EventCenter.RemoveListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
+
+        EventCenter.RemoveListener(EventType.MIRROR_OnMirrorConnectSuccess, HandleOnEnterMasterServerSuccess);
+        EventCenter.RemoveListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
     }
 
     void Update()
@@ -109,10 +114,21 @@ public class MenuManager : RootPanel {
 
     private void HandleOnUserEnterMenu() {
         print("Old User enter game");
-        //TODO: Loading bar loading; while loading, try connect to the Master Server.
-        NetworkManager.singleton.StartClient();
+        OpenInfoPanel("INTERNET_CONNECTING_TO_SERVER", true);
+        //MIRROR_OnMirrorConnectSuccess and MIRROR_OnMirrorConnectTimeout will be triggered
+        //connect to server using NetworkConnector
+        NetworkConnector._singleton.ConnectToServer(ServerInfo.ServerIp,ServerInfo.MasterServerPort);
     }
 
+    private void HandleOnEnterMasterServerSuccess() {
+        CloseInfoPanel();
+        print("Connect to master server");
+    }
+
+    private void HandleOnEnterMasterServerFailed() {
+        CloseInfoPanel();
+        EventCenter.Broadcast<string, UnityAction, string, object[]>(EventType.MENU_Error, "ERROR_NETWORK_SERVER", HandleOnUserEnterMenu, "MENU_RETRY", null);
+    }
     #endregion
 
 
@@ -142,5 +158,21 @@ public class MenuManager : RootPanel {
                 MenuManager._instance.StopWaiting();
                 onFailed?.Invoke(error);
             });
+    }
+
+    /// <summary>
+    /// Handle a weird Unity bug when calling coroutine on a singleton
+    /// When call a coroutine using MenuManager, always use this method
+    /// Example: StartCoroutine(MenuManager.GetOrCreate(gameObject).xxx)
+    /// </summary>
+    /// <param name="gameObject"></param>
+    /// <returns></returns>
+    public static MenuManager GetOrCreate(GameObject gameObject) {
+        if (!gameObject) {
+            return new MenuManager();
+        }
+
+        var existed = gameObject.GetComponent<MenuManager>();
+        return existed ?? gameObject.AddComponent<MenuManager>();
     }
 }

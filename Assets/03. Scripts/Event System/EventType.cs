@@ -11,6 +11,9 @@ public enum EventType
 
     INTERNET_OnInternetLostConnection,
     INTERNET_OnInternetConnectionRecover,
+    
+    MIRROR_OnMirrorConnectSuccess,
+    MIRROR_OnMirrorConnectTimeout,
 
     MENU_OnNewUserEnterMenu,
     MENU_OnUserEnterMenu,
