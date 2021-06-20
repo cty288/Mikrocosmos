@@ -678,4 +678,3 @@ MENU_USER_NAME_CREATE_SUCCESS		Successfully setup your player!																	�
 MENU_USER_NAME_RULE_ERROR2		This name already exists! Please try a new one.																	该游戏名字已存在!	該遊戲名字已存在!									
 MENU_USER_NAME_RULE_ERROR3		The name does not meet our naming rules or contains blocked words, please try again!																	该游戏名称不符合规范或包含屏蔽词汇，请重新再试！	該遊戲名稱不符合規範或包含屏蔽詞彙，請重新再試！									
 MENU_UNKNOWN_ERROR		An unknown error has occurred																	发生未知错误!	發生未知錯誤!									
-INTERNET_CONNECTING_TO_SERVER		Connecting to the server																	正在连接至游戏服务器	正在連接至遊戲服務器									

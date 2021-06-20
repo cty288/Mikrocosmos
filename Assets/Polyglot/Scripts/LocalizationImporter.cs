@@ -161,7 +161,7 @@ namespace Polyglot
 
                 if (languageStrings.ContainsKey(key))
                 {
-                    //Debug.Log("The key '" + key + "' already exist, but is now overwritten");
+                    Debug.Log("The key '" + key + "' already exist, but is now overwritten");
                     languageStrings[key] = row;
                     continue;
                 }

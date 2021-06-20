@@ -7,16 +7,13 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class ErrorPanel : MonoBehaviour {
-    public static ErrorPanel _singleton;
     [SerializeField] 
     private Text errorMessage;
 
     [SerializeField] private Text buttonText;
 
     [SerializeField] private Button closeButton;
-    void Awake() {
-        _singleton = this;
-    }
+
     /// <summary>
     /// Set the error message of the error panel to a specific localized message
     /// </summary>
