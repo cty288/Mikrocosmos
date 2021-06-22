@@ -122,6 +122,8 @@ public class LoginPanel : MonoBehaviour {
     private void HandleOnLoginFailed(PlayFabError error)
     {
         Launcher._instance.CloseInfoPanel();
+
+        print(error.ErrorMessage);
         EventCenter.Broadcast<string>(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_FAILED");
     }
 

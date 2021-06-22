@@ -15,6 +15,7 @@ public class MenuManager : RootPanel {
 
     [SerializeField] private GameObject firstTimeUserPanel;
     [SerializeField] private LoadingCircle loadingCircle;
+    [SerializeField] private GameObject gamemodePanel;
 
     void Awake() {
         _instance = this;
@@ -46,7 +47,7 @@ public class MenuManager : RootPanel {
     private void OnStartAddListeners() {
         EventCenter.AddListener(EventType.MENU_OnNewUserEnterMenu, HandleOpenNewUserPanel);
         EventCenter.AddListener(EventType.MENU_OnUserEnterMenu,HandleOnUserEnterMenu);
-        EventCenter.AddListener(EventType.MIRROR_OnMirrorConnectSuccess,HandleOnEnterMasterServerSuccess);
+        EventCenter.AddListener(EventType.MENU_AuthorityOnConnected,HandleOnEnterMasterServerSuccess);
         EventCenter.AddListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
 
         EventCenter.AddListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
@@ -63,7 +64,7 @@ public class MenuManager : RootPanel {
         EventCenter.RemoveListener(EventType.MENU_StopWaitingNetworkResponse, HandleStopLoadingCircle);
         EventCenter.RemoveListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
 
-        EventCenter.RemoveListener(EventType.MIRROR_OnMirrorConnectSuccess, HandleOnEnterMasterServerSuccess);
+        EventCenter.RemoveListener(EventType.MENU_AuthorityOnConnected, HandleOnEnterMasterServerSuccess);
         EventCenter.RemoveListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
     }
 
@@ -122,6 +123,10 @@ public class MenuManager : RootPanel {
 
     private void HandleOnEnterMasterServerSuccess() {
         CloseInfoPanel();
+        if (gamemodePanel) {
+            gamemodePanel.SetActive(true);
+        }
+
         print("Connect to master server");
     }
 
@@ -174,5 +179,15 @@ public class MenuManager : RootPanel {
 
         var existed = gameObject.GetComponent<MenuManager>();
         return existed ?? gameObject.AddComponent<MenuManager>();
+    }
+
+    /// <summary>
+    /// Request the server to find a match. The server will try to first find an existing and available one
+    /// If the server can't find it, it will create a new lobby room (via Playfab Matchmaking)
+    /// </summary>
+    /// <param name="gamemode"></param>
+
+    public void RequestMatch(Mode gamemode) {
+        NetworkClient.connection.identity.GetComponent<MasterServerPlayer>().RequestMatch(gamemode);
     }
 }

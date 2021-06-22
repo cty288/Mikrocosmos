@@ -16,8 +16,6 @@ public class NetworkConnector : MonoBehaviour {
     
     void Awake() {
         _singleton = this;
-        DontDestroyOnLoad(this.gameObject);
-        
     }
 
     void Update() {
@@ -26,7 +24,6 @@ public class NetworkConnector : MonoBehaviour {
             && NetworkManager.singleton.GetComponent<TelepathyTransport>().port == port) {
                 StopAllCoroutines();
                 startDetectServerConnect = false;
-                EventCenter.Broadcast(EventType.MIRROR_OnMirrorConnectSuccess);
             }
         }
     }
@@ -48,9 +45,9 @@ public class NetworkConnector : MonoBehaviour {
     private IEnumerator Connect(string address, ushort port,float minimumWaitTime=1.5f) {
         yield return new WaitForSeconds(minimumWaitTime);
 
-        NetworkManager.singleton.StopClient();
-        yield return new WaitForSeconds(0.2f);
-
+       NetworkManager.singleton.StopClient();
+       yield return new WaitForSeconds(0.5f);
+        
         NetworkManager.singleton.networkAddress = address;
         NetworkManager.singleton.GetComponent<TelepathyTransport>().port = port;
         this.ipAddress = address;
@@ -60,12 +57,10 @@ public class NetworkConnector : MonoBehaviour {
 
         yield return new WaitForSeconds(mirrorServerConnectionTimeout);
         startDetectServerConnect = false;
-        if (NetworkClient.isConnected) {
-            EventCenter.Broadcast(EventType.MIRROR_OnMirrorConnectSuccess);
-        }
-        else {
+        if (!NetworkClient.isConnected) { 
             EventCenter.Broadcast(EventType.MIRROR_OnMirrorConnectTimeout);
         }
+        
     }
 
 
@@ -78,13 +73,7 @@ public class NetworkConnector : MonoBehaviour {
     /// <returns></returns>
     public static NetworkConnector GetOrCreate(GameObject gameObject)
     {
-        if (!gameObject)
-        {
-            return new NetworkConnector();
-        }
-
-        var existed = gameObject.GetComponent<NetworkConnector>();
-        return existed ?? gameObject.AddComponent<NetworkConnector>();
+        return gameObject.GetComponent<NetworkConnector>();
     }
 
     private bool CheckConnected() {
