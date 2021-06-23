@@ -15,7 +15,6 @@ public class MenuManager : RootPanel {
 
     [SerializeField] private GameObject firstTimeUserPanel;
     [SerializeField] private LoadingCircle loadingCircle;
-    [SerializeField] private GameObject gamemodePanel;
 
     void Awake() {
         _instance = this;
@@ -40,15 +39,13 @@ public class MenuManager : RootPanel {
     /// </summary>
     /// <returns></returns>
     private IEnumerator LateStart() {
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(0.2f);
         CheckFirstTimeUser();
     }
 
     private void OnStartAddListeners() {
         EventCenter.AddListener(EventType.MENU_OnNewUserEnterMenu, HandleOpenNewUserPanel);
         EventCenter.AddListener(EventType.MENU_OnUserEnterMenu,HandleOnUserEnterMenu);
-        EventCenter.AddListener(EventType.MENU_AuthorityOnConnected,HandleOnEnterMasterServerSuccess);
-        EventCenter.AddListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
 
         EventCenter.AddListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
         EventCenter.AddListener(EventType.MENU_WaitingNetworkResponse,HandleStartLoadingCircle);
@@ -63,9 +60,6 @@ public class MenuManager : RootPanel {
         EventCenter.RemoveListener(EventType.MENU_WaitingNetworkResponse, HandleStartLoadingCircle);
         EventCenter.RemoveListener(EventType.MENU_StopWaitingNetworkResponse, HandleStopLoadingCircle);
         EventCenter.RemoveListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
-
-        EventCenter.RemoveListener(EventType.MENU_AuthorityOnConnected, HandleOnEnterMasterServerSuccess);
-        EventCenter.RemoveListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
     }
 
     void Update()
@@ -115,25 +109,10 @@ public class MenuManager : RootPanel {
 
     private void HandleOnUserEnterMenu() {
         print("Old User enter game");
-        OpenInfoPanel("INTERNET_CONNECTING_TO_SERVER", true);
-        //MIRROR_OnMirrorConnectSuccess and MIRROR_OnMirrorConnectTimeout will be triggered
-        //connect to server using NetworkConnector
-        NetworkConnector._singleton.ConnectToServer(ServerInfo.ServerIp,ServerInfo.MasterServerPort);
+        //TODO: Loading bar loading; while loading, try connect to the Master Server.
+        NetworkManager.singleton.StartClient();
     }
 
-    private void HandleOnEnterMasterServerSuccess() {
-        CloseInfoPanel();
-        if (gamemodePanel) {
-            gamemodePanel.SetActive(true);
-        }
-
-        print("Connect to master server");
-    }
-
-    private void HandleOnEnterMasterServerFailed() {
-        CloseInfoPanel();
-        EventCenter.Broadcast<string, UnityAction, string, object[]>(EventType.MENU_Error, "ERROR_NETWORK_SERVER", HandleOnUserEnterMenu, "MENU_RETRY", null);
-    }
     #endregion
 
 
@@ -163,31 +142,5 @@ public class MenuManager : RootPanel {
                 MenuManager._instance.StopWaiting();
                 onFailed?.Invoke(error);
             });
-    }
-
-    /// <summary>
-    /// Handle a weird Unity bug when calling coroutine on a singleton
-    /// When call a coroutine using MenuManager, always use this method
-    /// Example: StartCoroutine(MenuManager.GetOrCreate(gameObject).xxx)
-    /// </summary>
-    /// <param name="gameObject"></param>
-    /// <returns></returns>
-    public static MenuManager GetOrCreate(GameObject gameObject) {
-        if (!gameObject) {
-            return new MenuManager();
-        }
-
-        var existed = gameObject.GetComponent<MenuManager>();
-        return existed ?? gameObject.AddComponent<MenuManager>();
-    }
-
-    /// <summary>
-    /// Request the server to find a match. The server will try to first find an existing and available one
-    /// If the server can't find it, it will create a new lobby room (via Playfab Matchmaking)
-    /// </summary>
-    /// <param name="gamemode"></param>
-
-    public void RequestMatch(Mode gamemode) {
-        NetworkClient.connection.identity.GetComponent<MasterServerPlayer>().RequestMatch(gamemode);
     }
 }

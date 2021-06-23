@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using PlayFab;
 using PlayFab.ClientModels;
-using Polyglot;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -87,6 +86,7 @@ public class LoginPanel : MonoBehaviour {
                 EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
             });
 
+           
         }
         else {
             PlayerPrefs.SetInt("Remember_Account", 0);
@@ -122,8 +122,6 @@ public class LoginPanel : MonoBehaviour {
     private void HandleOnLoginFailed(PlayFabError error)
     {
         Launcher._instance.CloseInfoPanel();
-
-        print(error.ErrorMessage);
         EventCenter.Broadcast<string>(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_FAILED");
     }
 
