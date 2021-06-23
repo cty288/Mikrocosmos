@@ -14,11 +14,13 @@ public enum EventType
     
     MIRROR_OnMirrorConnectTimeout,
     MENU_AuthorityOnConnected,
-
     MENU_OnNewUserEnterMenu,
     MENU_OnUserEnterMenu,
     MENU_WaitingNetworkResponse,
     MENU_StopWaitingNetworkResponse,
     MENU_Error,
+    MENU_MATCHMAKING_ClientRequestingMatchmaking,
+    MENU_MATCHMAKING_ClientMatchmakingSuccess,
+    MENU_MATCHMAKING_ClientMatchmakingFailed
 
 }

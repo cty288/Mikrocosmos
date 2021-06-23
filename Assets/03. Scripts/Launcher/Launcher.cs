@@ -157,7 +157,8 @@ public class Launcher : RootPanel {
     /// </summary>
     public void OpenGame()
     {
-        PlayfabTokenPasser._instance.SaveToken(PlayfabUtilities.GetSessionTicket(),PlayfabUtilities.GetEntityId(),
+        PlayfabTokenPasser._instance.SaveToken(PlayerPrefs.GetString("Session_Ticket"),
+            PlayerPrefs.GetString("Entity_Id"),
             PlayfabUtilities.GetPlayFabIdFromPlayerPrefs());
         CloseInfoPanel();
         SceneManager.LoadSceneAsync("Menu");

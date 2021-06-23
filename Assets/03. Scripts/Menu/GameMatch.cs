@@ -11,8 +11,11 @@ public class GameMatch : NetworkBehaviour {
     private Team team;
 
     private string matchId;
+    public string MatchId => matchId;
+
     private ulong port;
     private string ip;
+    public string Ip => ip;
     
     private GameMode gamemode;
     public GameMode Gamemode => gamemode;
@@ -20,15 +23,18 @@ public class GameMatch : NetworkBehaviour {
     private Process gameProcess;
     private bool isGameAlreadyStart = false;
 
-    public override void OnStartServer() {
-        base.OnStartServer();
+
+    void Awake() {
         playersInMatch = new List<MasterServerPlayer>();
         port = 0;
         ip = ServerInfo.ServerIp;
     }
 
-    public void SetGamemode(GameMode gamemode) {
+    [ServerCallback]
+    public void SetGamemode(GameMode gamemode,string matchId, ulong port) {
         this.gamemode = gamemode;
+        this.matchId = matchId;
+        this.port = port;
         team = new Team(gamemode.GetTeamNumber(), gamemode.GetRequiredPlayerNumber());
     }
 

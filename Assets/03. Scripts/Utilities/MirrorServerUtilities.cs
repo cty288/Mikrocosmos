@@ -10,15 +10,18 @@ public class MirrorServerUtilities : MonoBehaviour
     /// </summary>
     /// <typeparam name="T">Custom component added to the object</typeparam>
     /// <param name="addedName">Name of the object</param>
-    public static void SpawnServerOnlyObject<T>(string addedName) where T:Component
+    public static GameObject SpawnServerOnlyObject<T>(string addedName) where T:Component
     {
         if (NetworkServer.active) {
             
             GameObject addedObj = new GameObject(addedName);
             addedObj.AddComponent<NetworkIdentity>().serverOnly=true;
             addedObj.AddComponent<T>();
-            Instantiate(addedObj);
             Debug.Log($"{addedName} added to the server!");
+            return addedObj;
         }
+
+        Debug.Log("Failed to add "+addedName);
+        return null;
     }
 }

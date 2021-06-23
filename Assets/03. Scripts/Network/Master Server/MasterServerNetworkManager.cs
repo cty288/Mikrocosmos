@@ -7,6 +7,9 @@ using UnityEngine;
 public class MasterServerNetworkManager : NetworkManager {
     private List<MasterServerPlayer> players;
 
+    private MatchManager matchManager;
+    public MatchManager MatchManager => matchManager;
+
     #region Server
     [Server]
     public override void OnServerAddPlayer(NetworkConnection conn)
@@ -34,6 +37,7 @@ public class MasterServerNetworkManager : NetworkManager {
     public override void OnStartServer()
     {
         base.OnStartServer();
+        Debug.Log("Server start!");
         InitializeServerOnlyObjs();
     }
 
@@ -42,7 +46,20 @@ public class MasterServerNetworkManager : NetworkManager {
     /// </summary>
     [Server]
     private void InitializeServerOnlyObjs() {
-        MirrorServerUtilities.SpawnServerOnlyObject<MatchManager>("Match Manager");
+        matchManager= MirrorServerUtilities.SpawnServerOnlyObject<MatchManager>("Match Manager").GetComponent<MatchManager>();
+    }
+
+    
+    public GameMatch ServerRequestFindAvailableMatch(Mode gamemode) {
+        if (matchManager && NetworkServer.active) {
+            GameMatch match= matchManager.FindAvailableMatch(GameMode.GetGameModeObj(gamemode));
+            Debug.Log("Find the MatchManager");
+            if (match != null) {
+                return match;
+            }
+        }
+        Debug.Log("Unable to find a match");
+        return null;
     }
     #endregion
 
