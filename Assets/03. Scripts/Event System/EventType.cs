@@ -11,10 +11,14 @@ public enum EventType
 
     INTERNET_OnInternetLostConnection,
     INTERNET_OnInternetConnectionRecover,
+    
+    MIRROR_OnMirrorConnectTimeout,
+    MENU_AuthorityOnConnected,
 
     MENU_OnNewUserEnterMenu,
     MENU_OnUserEnterMenu,
     MENU_WaitingNetworkResponse,
     MENU_StopWaitingNetworkResponse,
     MENU_Error,
+
 }
