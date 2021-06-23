@@ -37,4 +37,11 @@ public class PlayfabTokenPasser : MonoBehaviour {
 public struct PlayfabToken {
     public string SessionTicket, EntityId, PlayfabId;
     public string PlayerName;
+
+    public PlayfabToken(string SessionTicket, string EntityId,string PlayfabId, string PlayerName) {
+        this.SessionTicket = SessionTicket;
+        this.EntityId = EntityId;
+        this.PlayerName = PlayerName;
+        this.PlayfabId = PlayfabId;
+    }
 }

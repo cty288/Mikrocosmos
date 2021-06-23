@@ -13,6 +13,7 @@ public abstract class GameMode {
     protected Mode mode;
     protected int requiredPlayerNumber;
     protected int teamNumber;
+    protected string queueName;
 
     public Mode getGameMode() {
         return mode;
@@ -25,6 +26,28 @@ public abstract class GameMode {
     public int GetTeamNumber() {
         return teamNumber;
     }
+
+    public string GetQueueName() {
+        return queueName;
+    }
+
+    /// <summary>
+    /// Return a Gamemode obejct by Mode enum
+    /// </summary>
+    /// <param name="mode"></param>
+    /// <returns></returns>
+    public static GameMode GetGameModeObj(Mode mode) {
+        switch (mode) {
+            case Mode.Fast:
+                return new QuickMode();
+            case Mode.Standard:
+                return new StandardMode();
+            case Mode.Marathon:
+                return new MarathonMode();
+            default:
+                return new StandardMode();
+        }
+    }
 }
 
 public class QuickMode : GameMode {
@@ -32,6 +55,7 @@ public class QuickMode : GameMode {
         mode = Mode.Fast;
         requiredPlayerNumber = 10;
         teamNumber = 2;
+        queueName = "Quick_Mode";
     }
 }
 
@@ -40,16 +64,18 @@ public class StandardMode : GameMode {
         mode = Mode.Standard;
         requiredPlayerNumber = 10;
         teamNumber = 2;
+        queueName = "Standard_Mode";
     }
 }
 
 
-public class MarrathonMode : GameMode
+public class MarathonMode : GameMode
 {
-    public MarrathonMode()
+    public MarathonMode()
     {
         mode = Mode.Marathon;
         requiredPlayerNumber = 10;
         teamNumber = 2;
+        queueName = "Marathon_Mode";
     }
 }
