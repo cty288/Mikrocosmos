@@ -23,6 +23,8 @@ public enum EventType
     MENU_MATCHMAKING_ClientMatchmakingSuccess,
     MENU_MATCHMAKING_ClientMatchmakingFailed,
     MENU_MATCHMAKING_ClientMatchmakingCancelled,
-    MENU_MATCHMAKING_ClientMatchmakingReadyToGet
+    MENU_MATCHMAKING_ClientMatchmakingReadyToGet,
+    MENU_OnServerPlayerAdded,
+    MENU_OnServerPlayerDisconnected
 
 }

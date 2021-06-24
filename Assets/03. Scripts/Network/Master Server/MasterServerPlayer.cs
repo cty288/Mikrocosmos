@@ -16,13 +16,29 @@ public class MasterServerPlayer : NetworkBehaviour {
     [SyncVar][SerializeField]
     private string matchId;
 
-    [SyncVar] 
-    private PlayfabToken playfabToken;
+    [SyncVar][SerializeField]
+    private string displayName;
+    public string DisplayName => displayName;
+
+    [SyncVar]
+    [SerializeField]
+    private string entityId;
+    
 
     [SyncVar] 
     private Mode requestingMode; 
 
     #region Server
+    public override void OnStartServer() {
+        EventCenter.Broadcast(EventType.MENU_OnServerPlayerAdded,this);
+    }
+
+    public Action<MasterServerPlayer> onPlayerDisconnect;
+    public override void OnStopServer() {
+        onPlayerDisconnect?.Invoke(this);
+        EventCenter.Broadcast(EventType.MENU_OnServerPlayerDisconnected,this);
+    }
+
     [Command]
     private void CmdUpdateLastCommandTick() {
         lastCommandTick = DateTime.Now.Ticks;
@@ -34,7 +50,12 @@ public class MasterServerPlayer : NetworkBehaviour {
         requestingMode = mode;
         if (match != null) {
             matchId = match.MatchId;
-            TargetOnServerGetMatch(matchId);
+            if (match.JoinPlayer(this)) {
+                TargetOnServerGetMatch(matchId);
+            }
+            else {
+                ClientOnMatchmakingError(new PlayFabError{Error = PlayFabErrorCode.MatchmakingTicketMembershipLimitExceeded});
+            }
             
         }
         else {
@@ -46,23 +67,32 @@ public class MasterServerPlayer : NetworkBehaviour {
     [Command]
     private void CmdOnGetMatch(GetMatchResult result)
     {
-        print("CmdOnGetMatch running");
         GameMatch match =
             ((MasterServerNetworkManager) NetworkManager.singleton).ServerRequestNewPlayfabMatchmakingRoom(
                 GameMode.GetGameModeObj(requestingMode), result.MatchId);
+        
         if (match != null) {
             matchId = match.MatchId;
-            EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,matchId);
-            print($"Successfully created a new matchmaking room! Matchid: {matchId}");
+            if (match.JoinPlayer(this)) {
+                TargetOnServerGetMatch(matchId);
+            }
+            else {
+                TargetOnServerFailedToGetMatch();
+            }
+            
         }
         else {
             TargetOnServerFailedToGetMatch();
         }
     }
+    
+    
 
     [Command]
     private void CmdUpdatePlayfabToken(PlayfabToken token) {
-        this.playfabToken = new PlayfabToken(token.SessionTicket,token.EntityId,token.PlayfabId,token.PlayerName);
+        this.displayName = token.PlayerName;
+        this.entityId = token.EntityId;
+        print(displayName);
     }
 
     #endregion
@@ -156,7 +186,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     private IEnumerator StartPlayFabMatchmaking(NetworkConnection target) {
         yield return new WaitForSeconds(0.5f);
         print($"Requesting PlayFab matchmaking, queue name: {GameMode.GetGameModeObj(requestingMode).GetQueueName()}" +
-              $"Entity id: {playfabToken.EntityId}");
+              $"Entity id: {entityId}");
         
         PlayFabMultiplayerAPI.CreateMatchmakingTicket(new CreateMatchmakingTicketRequest
         {
@@ -164,7 +194,7 @@ public class MasterServerPlayer : NetworkBehaviour {
             {
                 Entity = new EntityKey
                 {
-                    Id = playfabToken.EntityId,
+                    Id = entityId,
                     Type = "title_player_account"
                 },
                 Attributes = new MatchmakingPlayerAttributes

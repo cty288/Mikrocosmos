@@ -96,6 +96,7 @@ public class MenuManager : RootPanel {
             if (result.PlayerProfile.DisplayName == null) {
                 EventCenter.Broadcast(EventType.MENU_OnNewUserEnterMenu);
             }else {
+                PlayfabTokenPasser._instance.SavePlayerName(result.PlayerProfile.DisplayName);
                 EventCenter.Broadcast(EventType.MENU_OnUserEnterMenu);
             }
         }, error => {

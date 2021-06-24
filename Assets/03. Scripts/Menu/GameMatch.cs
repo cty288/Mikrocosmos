@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Mirror;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class GameMatch : NetworkBehaviour {
     private List<MasterServerPlayer> playersInMatch;
@@ -30,12 +31,28 @@ public class GameMatch : NetworkBehaviour {
         ip = ServerInfo.ServerIp;
     }
 
+
+
     [ServerCallback]
     public void SetGamemode(GameMode gamemode,string matchId, ulong port) {
         this.gamemode = gamemode;
         this.matchId = matchId;
         this.port = port;
         team = new Team(gamemode.GetTeamNumber(), gamemode.GetRequiredPlayerNumber());
+    }
+
+    [ServerCallback]
+    public bool JoinPlayer(MasterServerPlayer player) {
+        bool result = team.AddPlayerToTeam(player);
+        if (result) {
+            Debug.Log($"Added {player.DisplayName} to match {matchId}");
+        }
+        else {
+            Debug.Log($"{player.DisplayName} already exists in match {matchId}!");
+        }
+        playersInMatch.Add(player);
+        player.onPlayerDisconnect += OnPlayerDisconnect;
+        return result;
     }
 
     /// <summary>
@@ -62,6 +79,17 @@ public class GameMatch : NetworkBehaviour {
     /// <returns></returns>
     public int GetRequiredPlayerNumber() {
         return gamemode.GetRequiredPlayerNumber();
+    }
+
+    [Server]
+    private void OnPlayerDisconnect(MasterServerPlayer player) {
+        team.RemovePlayerFromTeam(player);
+        print($"{player.DisplayName} existed match room {matchId}");
+        RemoveListener(player);
+    }
+
+    private void RemoveListener(MasterServerPlayer player) {
+        player.onPlayerDisconnect -= OnPlayerDisconnect;
     }
 }
 

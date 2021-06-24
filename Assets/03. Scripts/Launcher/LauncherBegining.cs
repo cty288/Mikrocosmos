@@ -14,19 +14,20 @@ public class LauncherBegining : MonoBehaviour
 
     private float startWidth;
 
-    [DllImport("user32.dll")]
+    /*[DllImport("user32.dll")]
     static extern IntPtr SetWindowLong(IntPtr hwnd, int _nIndex, int dwNewLong);
 
     [DllImport("user32.dll")]
-    static extern IntPtr GetForegroundWindow();
+    static extern IntPtr GetForegroundWindow();*/
 
     void Start()
     {
         Screen.SetResolution(800, 100, false);
-        if (Application.platform != RuntimePlatform.WindowsEditor)
+        
+        /*if (Application.platform != RuntimePlatform.WindowsEditor)
         {
             StartCoroutine(SetWindows());
-        }
+        }*/
 
         startWidth = progressbar.sizeDelta.x;
         LocalizationImporter.onDownloadCustonSheet += OnDownloadComplete;
@@ -37,10 +38,10 @@ public class LauncherBegining : MonoBehaviour
         LocalizationImporter.onDownloadCustonSheet -= OnDownloadComplete;
     }
 
-    private IEnumerator SetWindows() {
+   /* private IEnumerator SetWindows() {
         yield return new WaitForSeconds(0.1f);	
         SetWindowLong(GetForegroundWindow(), -16, 0x800000);
-    }
+    }*/
 
     private void OnDownloadComplete() {
         

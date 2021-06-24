@@ -5,41 +5,69 @@ using Mirror;
 using UnityEngine;
 
 public class MasterServerNetworkManager : NetworkManager {
-    private List<MasterServerPlayer> players;
+    private List<MasterServerPlayer> playersConnections;
 
     private MatchManager matchManager;
     public MatchManager MatchManager => matchManager;
 
     #region Server
+    /*
     [Server]
     public override void OnServerAddPlayer(NetworkConnection conn)
     {
         base.OnServerAddPlayer(conn);
 
         //players.Add(conn.identity.GetComponent<MasterServerPlayer>());
-        StartCoroutine(Wait(conn));
+        StartCoroutine(Wait(conn.identity.GetComponent<MasterServerPlayer>()));
     }
 
-    IEnumerator Wait(NetworkConnection conn) {
-        yield return new WaitForSeconds(0.3f);
-        players.Add(conn.identity.GetComponent<MasterServerPlayer>());
+    IEnumerator Wait(MasterServerPlayer conn) {
+        yield return new WaitForSeconds(0.5f);
+        print($"Added {conn.DisplayName} to the server player list");
+        playersConnections.Add(conn);
+    }*/
+
+    [Server]
+    public void AddPlayer(MasterServerPlayer player) {
+        print($"Added {player.DisplayName} to the server player list");
+        playersConnections.Add(player);
+
     }
 
     [Server]
+    public void RemovePlayer(MasterServerPlayer player)
+    {
+        print($"Removed {player.DisplayName} from the server player list");
+        playersConnections.Remove(player);
+    }
+    
+    /*
+    [Server]
     public override void OnServerDisconnect(NetworkConnection conn)
     {
-        players.Remove(conn.identity.GetComponent<MasterServerPlayer>());
+        print($"Removed {conn.identity.GetComponent<MasterServerPlayer>().DisplayName} from the server player list");
+        playersConnections.Remove(conn.identity.GetComponent<MasterServerPlayer>());
         base.OnServerDisconnect(conn);
         
-    }
+    }*/
 
 
     [Server]
     public override void OnStartServer()
     {
         base.OnStartServer();
+        playersConnections = new List<MasterServerPlayer>();
         Debug.Log("Server start!");
         InitializeServerOnlyObjs();
+        EventCenter.AddListener<MasterServerPlayer>(EventType.MENU_OnServerPlayerAdded,AddPlayer);
+        EventCenter.AddListener<MasterServerPlayer>(EventType.MENU_OnServerPlayerDisconnected, RemovePlayer);
+    }
+
+    [Server]
+    public override void OnStopServer() {
+        base.OnStopServer();
+        EventCenter.RemoveListener<MasterServerPlayer>(EventType.MENU_OnServerPlayerAdded, AddPlayer);
+        EventCenter.RemoveListener<MasterServerPlayer>(EventType.MENU_OnServerPlayerDisconnected, RemovePlayer);
     }
 
     /// <summary>
@@ -59,7 +87,6 @@ public class MasterServerNetworkManager : NetworkManager {
                 return match;
             }
         }
-        Debug.Log("Unable to find a match");
         return null;
     }
     /// <summary>

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Mirror;
 using UnityEngine;
 
 public class Team {
@@ -46,6 +47,11 @@ public class Team {
         if (currentPlayerNumber >= totalPlayerNumber) {
             return false;
         }
+
+        if (IsSamePlayerExist(player)) {
+            return false;
+        }
+
         Faction faction = factions[Random.Range(0, factions.Count)];
 
         while (faction.isFull()) {
@@ -61,9 +67,37 @@ public class Team {
         if (factions[faction].isFull()) {
             return false;
         }
+
+        if (IsSamePlayerExist(player)) {
+            return false;
+        }
         factions[faction].members.Add(player);
         currentPlayerNumber++;
         return true;
+    }
+
+    private bool IsSamePlayerExist(MasterServerPlayer player) {
+        foreach (Faction faction in factions) {
+            foreach (MasterServerPlayer existingPlayer in faction.members) {
+                if (existingPlayer.DisplayName == player.DisplayName) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public void RemovePlayerFromTeam(MasterServerPlayer player) {
+        for (int i = 0; i < factions.Count; i++) {
+            for (int j = 0; j < factions[i].members.Count; j++) {
+                if (factions[i].members[j].DisplayName == player.DisplayName) {
+                    factions[i].members.RemoveAt(j);
+                    currentPlayerNumber--;
+                    return;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -83,6 +117,10 @@ public class Faction {
     }
 
     public List<MasterServerPlayer> members;
+
+    public Faction() {
+        members = new List<MasterServerPlayer>();
+    }
 
     /// <summary>
     /// get the current size of the faction.
