@@ -6,6 +6,7 @@ using PlayFab;
 using PlayFab.ClientModels;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 /// <summary>
 /// Client Class 
@@ -16,11 +17,11 @@ public class MenuManager : RootPanel {
     [SerializeField] private GameObject firstTimeUserPanel;
     [SerializeField] private LoadingCircle loadingCircle;
     [SerializeField] private GameObject gamemodePanel;
-
+    [SerializeField] private Button cancelMatchmakingButton;
     void Awake() {
         _instance = this;
-        Screen.SetResolution(1920, 1080, true);
-        Screen.fullScreen = true;
+        Screen.SetResolution(1280, 720, false);
+        //Screen.fullScreen = true;
 
         OnStartAddListeners();
     }
@@ -33,6 +34,7 @@ public class MenuManager : RootPanel {
     void Start()
     {
         firstTimeUserPanel.gameObject.SetActive(false);
+        cancelMatchmakingButton.onClick.AddListener(OnCancelMatchmakingButtonClicked);
         StartCoroutine(LateStart());
     }
     /// <summary>
@@ -49,9 +51,16 @@ public class MenuManager : RootPanel {
         EventCenter.AddListener(EventType.MENU_OnUserEnterMenu,HandleOnUserEnterMenu);
         EventCenter.AddListener(EventType.MENU_AuthorityOnConnected,HandleOnEnterMasterServerSuccess);
         EventCenter.AddListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
-
+        
         EventCenter.AddListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
-        EventCenter.AddListener(EventType.MENU_WaitingNetworkResponse,HandleStartLoadingCircle);
+
+
+        EventCenter.AddListener<bool,bool,string>(EventType.MENU_MATCHMAKING_ClientRequestingMatchmaking,
+            HandleClientRequestMatchmaking);
+        EventCenter.AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed,HandleMatchmakingFailed);
+        EventCenter.AddListener<string>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,HandleClientRequestMatchmakingSuccess);
+        EventCenter.AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet,HandleClientReadyToGetMatch);
+        EventCenter.AddListener<bool,bool,string>(EventType.MENU_WaitingNetworkResponse,HandleStartLoadingCircle);
         EventCenter.AddListener(EventType.MENU_StopWaitingNetworkResponse,HandleStopLoadingCircle);
     }
 
@@ -60,12 +69,16 @@ public class MenuManager : RootPanel {
         EventCenter.RemoveListener(EventType.MENU_OnNewUserEnterMenu, HandleOpenNewUserPanel);
         EventCenter.RemoveListener(EventType.MENU_OnUserEnterMenu, HandleOnUserEnterMenu);
 
-        EventCenter.RemoveListener(EventType.MENU_WaitingNetworkResponse, HandleStartLoadingCircle);
+        EventCenter.RemoveListener<bool, bool, string>(EventType.MENU_WaitingNetworkResponse, HandleStartLoadingCircle);
         EventCenter.RemoveListener(EventType.MENU_StopWaitingNetworkResponse, HandleStopLoadingCircle);
         EventCenter.RemoveListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
-
+        EventCenter.RemoveListener<bool, bool, string>(EventType.MENU_MATCHMAKING_ClientRequestingMatchmaking,
+            HandleClientRequestMatchmaking);
         EventCenter.RemoveListener(EventType.MENU_AuthorityOnConnected, HandleOnEnterMasterServerSuccess);
         EventCenter.RemoveListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
+        EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed, HandleMatchmakingFailed);
+        EventCenter.RemoveListener<string>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, HandleClientRequestMatchmakingSuccess);
+        EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet, HandleClientReadyToGetMatch);
     }
 
     void Update()
@@ -94,9 +107,10 @@ public class MenuManager : RootPanel {
 
 
     #region EventHandlers
-    private void HandleStartLoadingCircle()
+    private void HandleStartLoadingCircle(bool hasloadingMessage = false, bool hasLoadingPeriod = false, string
+        loadingMessage = "")
     {
-        loadingCircle.StartLoadingCircle();
+        loadingCircle.StartLoadingCircle(hasloadingMessage,hasLoadingPeriod,loadingMessage);
     }
 
     private void HandleStopLoadingCircle()
@@ -134,6 +148,49 @@ public class MenuManager : RootPanel {
         CloseInfoPanel();
         EventCenter.Broadcast<string, UnityAction, string, object[]>(EventType.MENU_Error, "ERROR_NETWORK_SERVER", HandleOnUserEnterMenu, "MENU_RETRY", null);
     }
+
+    private void HandleMatchmakingFailed() {
+        StopWaiting();
+        EventCenter.Broadcast<string, UnityAction, string, object[]>
+            (EventType.MENU_Error, "ERROR_NETWORK_CONNECTION_LOST", () => { }, "GAME_ACTION_CLOSE", null);
+        
+        if (cancelMatchmakingButton) {
+            cancelMatchmakingButton.gameObject.SetActive(false);
+        }
+
+    }
+
+    private void HandleClientRequestMatchmaking(bool hasloadingMessage = false, bool hasLoadingPeriod = false, string
+        loadingMessage = "") {
+        HandleStartLoadingCircle(hasloadingMessage,hasLoadingPeriod,loadingMessage);
+
+        if (cancelMatchmakingButton) {
+            cancelMatchmakingButton.gameObject.SetActive(true);
+            cancelMatchmakingButton.interactable = true;
+        }
+
+
+    }
+
+    private void HandleClientReadyToGetMatch() {
+        if (cancelMatchmakingButton)
+        {
+            loadingCircle.ChangeLoadingMessage(true, "MENU_WAITING_FIND_MATCH");
+            cancelMatchmakingButton.gameObject.SetActive(true);
+            cancelMatchmakingButton.interactable = false;
+        }
+    }
+
+    private void HandleClientRequestMatchmakingSuccess(string matchId) {
+        StopWaiting();
+        if (cancelMatchmakingButton) {
+            cancelMatchmakingButton.gameObject.SetActive(false);
+            cancelMatchmakingButton.interactable = false;
+        }
+
+
+        Debug.Log($"Client request new match room success! Matchid: {matchId}");
+    }
     #endregion
 
 
@@ -141,9 +198,10 @@ public class MenuManager : RootPanel {
     /// <summary>
     /// Start Waiting (open loading circle)
     /// </summary>
-    public void StartWaiting()
+    public void StartWaiting(bool hasloadingMessage = false, bool hasLoadingPeriod = false, string
+        loadingMessageLocalized = "")
     {
-        EventCenter.Broadcast(EventType.MENU_WaitingNetworkResponse);
+        EventCenter.Broadcast(EventType.MENU_WaitingNetworkResponse,hasloadingMessage,hasLoadingPeriod, loadingMessageLocalized);
     }
 
     /// <summary>
@@ -189,5 +247,13 @@ public class MenuManager : RootPanel {
 
     public void RequestMatch(Mode gamemode) {
         NetworkClient.connection.identity.GetComponent<MasterServerPlayer>().RequestMatch(gamemode);
+    }
+
+    private void OnCancelMatchmakingButtonClicked() {
+        EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingCancelled);
+        if (cancelMatchmakingButton) {
+            cancelMatchmakingButton.gameObject.SetActive(false);
+            StopWaiting();
+        }
     }
 }

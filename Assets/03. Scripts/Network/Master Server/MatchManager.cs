@@ -40,7 +40,7 @@ public class MatchManager : NetworkBehaviour {
     /// <param name="matchId">Matchid. Use PlayFab to generate one</param>
     /// <returns>The requested GameMatch object. null if failed to create</returns>
     [ServerCallback]
-    public GameMatch CreateMatchRoom(GameMode gamemode, string matchId) {
+    private GameMatch CreateMatchRoom(GameMode gamemode, string matchId) {
         //just create the room; no playfab matchmaking
         GameObject createdRoom = MirrorServerUtilities.SpawnServerOnlyObject<GameMatch>($"Gamematch: {matchId}");
         if (createdRoom != null) {
@@ -54,6 +54,34 @@ public class MatchManager : NetworkBehaviour {
         else {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Create a new match room based on generated playfab matchid and gamemode
+    /// </summary>
+    /// <param name="gamemode"></param>
+    /// <param name="matchId"></param>
+    /// <returns></returns>
+    [ServerCallback]
+    public GameMatch RequestNewPlayfabMatchmakingRoom(GameMode gamemode, string matchId) {
+        GameMatch roomCreatedByTeamMate = FindMatchRoomByMatchId(matchId);
+        if (roomCreatedByTeamMate != null) {
+            return roomCreatedByTeamMate;
+        }
+        else {
+            return CreateMatchRoom(gamemode, matchId);
+        }
+    }
+
+    [ServerCallback]
+    private GameMatch FindMatchRoomByMatchId(string matchId) {
+        foreach (GameMatch match in unStartedMatchList) {
+            if (match.MatchId == matchId) {
+                return match;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

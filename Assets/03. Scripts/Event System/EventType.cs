@@ -21,6 +21,8 @@ public enum EventType
     MENU_Error,
     MENU_MATCHMAKING_ClientRequestingMatchmaking,
     MENU_MATCHMAKING_ClientMatchmakingSuccess,
-    MENU_MATCHMAKING_ClientMatchmakingFailed
+    MENU_MATCHMAKING_ClientMatchmakingFailed,
+    MENU_MATCHMAKING_ClientMatchmakingCancelled,
+    MENU_MATCHMAKING_ClientMatchmakingReadyToGet
 
 }

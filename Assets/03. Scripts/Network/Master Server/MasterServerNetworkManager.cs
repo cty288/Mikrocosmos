@@ -28,8 +28,9 @@ public class MasterServerNetworkManager : NetworkManager {
     [Server]
     public override void OnServerDisconnect(NetworkConnection conn)
     {
-        base.OnServerDisconnect(conn);
         players.Remove(conn.identity.GetComponent<MasterServerPlayer>());
+        base.OnServerDisconnect(conn);
+        
     }
 
 
@@ -59,6 +60,19 @@ public class MasterServerNetworkManager : NetworkManager {
             }
         }
         Debug.Log("Unable to find a match");
+        return null;
+    }
+    /// <summary>
+    /// Request MatchManager to create a new match room based on generated playfab matchid and gamemode
+    /// </summary>
+    /// <param name="gamemode"></param>
+    /// <param name="matchId"></param>
+    /// <returns></returns>
+    public GameMatch ServerRequestNewPlayfabMatchmakingRoom(GameMode gamemode, string matchId) {
+        if (matchManager && NetworkServer.active) {
+            return matchManager.RequestNewPlayfabMatchmakingRoom(gamemode, matchId);
+        }
+
         return null;
     }
     #endregion

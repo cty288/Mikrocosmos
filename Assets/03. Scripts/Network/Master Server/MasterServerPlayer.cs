@@ -19,6 +19,9 @@ public class MasterServerPlayer : NetworkBehaviour {
     [SyncVar] 
     private PlayfabToken playfabToken;
 
+    [SyncVar] 
+    private Mode requestingMode; 
+
     #region Server
     [Command]
     private void CmdUpdateLastCommandTick() {
@@ -28,16 +31,35 @@ public class MasterServerPlayer : NetworkBehaviour {
     [Command]
     private void CmdServerRequestMatch(Mode mode) {
         GameMatch match = ((MasterServerNetworkManager) NetworkManager.singleton).ServerRequestFindAvailableMatch(mode);
+        requestingMode = mode;
         if (match != null) {
             matchId = match.MatchId;
+            TargetOnServerGetMatch(matchId);
+            
         }
         else {
             //Playfab start matchmaking. This need to be called on the Client due to PlayFab Rate Limit
-            TargetStartPlayFabMatchmaking(connectionToClient,mode);
+            TargetStartPlayFabMatchmaking(connectionToClient);
         }
     }
 
-    
+    [Command]
+    private void CmdOnGetMatch(GetMatchResult result)
+    {
+        print("CmdOnGetMatch running");
+        GameMatch match =
+            ((MasterServerNetworkManager) NetworkManager.singleton).ServerRequestNewPlayfabMatchmakingRoom(
+                GameMode.GetGameModeObj(requestingMode), result.MatchId);
+        if (match != null) {
+            matchId = match.MatchId;
+            EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,matchId);
+            print($"Successfully created a new matchmaking room! Matchid: {matchId}");
+        }
+        else {
+            TargetOnServerFailedToGetMatch();
+        }
+    }
+
     [Command]
     private void CmdUpdatePlayfabToken(PlayfabToken token) {
         this.playfabToken = new PlayfabToken(token.SessionTicket,token.EntityId,token.PlayfabId,token.PlayerName);
@@ -103,31 +125,46 @@ public class MasterServerPlayer : NetworkBehaviour {
     public override void OnStartAuthority() {
         base.OnStartAuthority();
         EventCenter.Broadcast(EventType.MENU_AuthorityOnConnected);
+        EventCenter.AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingCancelled,CancelMatchmaking);
         if (PlayfabTokenPasser._instance) {
             CmdUpdatePlayfabToken(PlayfabTokenPasser._instance.Token);
         }
     }
 
+    public override void OnStopAuthority() {
+        base.OnStopAuthority();
+        EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingCancelled, CancelMatchmaking);
+    }
+
     [Client]
     public void RequestMatch(Mode gamemode) {
         if (hasAuthority) {
+            ticketId = "";
+            EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientRequestingMatchmaking, true, true,
+                "MANU_WAITING_MATCHMAKING");
             RunServerCommand<Mode>(CmdServerRequestMatch, gamemode);
         }
     }
 
-    public void Test(GameMatch match) {
-        print(match.Ip);
-    }
 
     [TargetRpc]
-    private void TargetStartPlayFabMatchmaking(NetworkConnection target,Mode mode) {
+    private void TargetStartPlayFabMatchmaking(NetworkConnection target) {
+        ticketId = "";
+        StartCoroutine(StartPlayFabMatchmaking(target));
+    }
+
+    private IEnumerator StartPlayFabMatchmaking(NetworkConnection target) {
+        yield return new WaitForSeconds(0.5f);
+        print($"Requesting PlayFab matchmaking, queue name: {GameMode.GetGameModeObj(requestingMode).GetQueueName()}" +
+              $"Entity id: {playfabToken.EntityId}");
+        
         PlayFabMultiplayerAPI.CreateMatchmakingTicket(new CreateMatchmakingTicketRequest
         {
             Creator = new MatchmakingPlayer
             {
                 Entity = new EntityKey
                 {
-                    Id = playfabToken.EntityId, 
+                    Id = playfabToken.EntityId,
                     Type = "title_player_account"
                 },
                 Attributes = new MatchmakingPlayerAttributes
@@ -136,19 +173,115 @@ public class MasterServerPlayer : NetworkBehaviour {
                 }
             },
             GiveUpAfterSeconds = 120,
-            QueueName = GameMode.GetGameModeObj(mode).GetQueueName(),
+            QueueName = GameMode.GetGameModeObj(requestingMode).GetQueueName(),
         }, ClientOnMatchmakingTicketCreated, ClientOnMatchmakingError);
-        print("Queue Name: "+GameMode.GetGameModeObj(mode).GetQueueName());
     }
+
+
+    private Coroutine pollTicketCoroutine;
+
+    private string ticketId;
 
     [Client]
     private void ClientOnMatchmakingTicketCreated(CreateMatchmakingTicketResult result) {
         print("Client matchmaking ticket created");
+        this.ticketId = result.TicketId;
+        pollTicketCoroutine = StartCoroutine(ClientPollTicket());
+    }
+
+    [Client]
+    private IEnumerator ClientPollTicket()
+    {
+        
+        print("polling ticket, ticket id: "+this.ticketId);
+        while (true)
+        {
+            PlayFabMultiplayerAPI.GetMatchmakingTicket(
+                new GetMatchmakingTicketRequest
+                {
+                    TicketId = this.ticketId,
+                    QueueName = GameMode.GetGameModeObj(requestingMode).GetQueueName()
+                }, OnGetMatchmakingTicket, ClientOnMatchmakingError);
+            yield return new WaitForSeconds(6);
+        }
+    }
+
+    [Client]
+    private void OnGetMatchmakingTicket(GetMatchmakingTicketResult result)
+    {
+        print("Polling a ticket. Result: "+result.Status);
+        //WaitingForPlayers, WaitingForMatch, WaitingForServer, Canceled, Matched
+        switch (result.Status)
+        {
+            case "Matched":
+                StopCoroutine(pollTicketCoroutine);
+                ClientStartMatch(result.MatchId);
+                break;
+            case "Canceled":
+                print("Cancelled");
+                StopCoroutine(pollTicketCoroutine);
+                break;
+        }
+    }
+
+    [Client]
+    private void ClientStartMatch(string matchId)
+    {
+        if (hasAuthority) {
+            print("Starting a match.");
+            EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet);
+            PlayFabMultiplayerAPI.GetMatch(
+                new GetMatchRequest
+                {
+                    MatchId = matchId,
+                    QueueName = GameMode.GetGameModeObj(requestingMode).GetQueueName()
+                },
+                CmdOnGetMatch,
+                ClientOnMatchmakingError
+            );
+        }
+    }
+
+    [TargetRpc]
+    private void TargetOnServerGetMatch(string matchId) {
+        EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, matchId);
+    }
+
+    [TargetRpc]
+    private void TargetOnServerFailedToGetMatch()
+    {
+        EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed);
+        CancelMatchmaking();
     }
 
     [Client]
     private void ClientOnMatchmakingError(PlayFabError error) {
         print("Client matchmaking error occurred: "+error.Error.ToString());
+        EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed);
+        if (pollTicketCoroutine != null) {
+            StopCoroutine(pollTicketCoroutine);
+        }
+
+        CancelMatchmaking();
+    }
+
+    [Client]
+    private void CancelMatchmaking() {
+        if (hasAuthority && ticketId!="") {
+            PlayFabMultiplayerAPI.CancelAllMatchmakingTicketsForPlayer(new CancelAllMatchmakingTicketsForPlayerRequest {
+                QueueName = GameMode.GetGameModeObj(requestingMode).GetQueueName()
+            },ClientOnTicketCanceled, (error) => { print(error.Error);});
+            
+        }
+    }
+
+    [Client]
+    private void ClientOnTicketCanceled(CancelAllMatchmakingTicketsForPlayerResult result) {
+
+        if (pollTicketCoroutine != null) {
+            StopCoroutine(pollTicketCoroutine);
+        }
+        print("Matchmaking ticket cancelled success");
     }
 
     #endregion
