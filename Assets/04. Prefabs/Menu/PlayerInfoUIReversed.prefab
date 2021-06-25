@@ -103,6 +103,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0.00000095367
       objectReference: {fileID: 0}
+    - target: {fileID: 4350762851209184730, guid: f814f7553ce1b794ca09364b3c185e1d, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 7644583119557501593, guid: f814f7553ce1b794ca09364b3c185e1d, type: 3}
       propertyPath: m_FontData.m_Alignment
       value: 5

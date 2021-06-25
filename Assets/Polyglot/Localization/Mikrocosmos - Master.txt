@@ -687,3 +687,4 @@ MENU_QUICK_GAME		Quick Match																	快速模式	快速模式
 MENU_STANDARD_GAME		Standard Match																	标准模式	標準模式									
 MENU_MARATHON_GAME		Marathon Game																	马拉松模式	馬拉松模式									
 MANU_WAITING_MATCHMAKING		Joining you to a game match																	正在为你匹配游戏房间	正在為你匹配遊戲房間									
+MENU_WAITING_FIND_MATCH		Successfully found a lobby. Please wait																	已匹配到房间，请稍等	已匹配到房間，請稍等									

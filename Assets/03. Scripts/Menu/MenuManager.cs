@@ -58,7 +58,8 @@ public class MenuManager : RootPanel {
         EventCenter.AddListener<bool,bool,string>(EventType.MENU_MATCHMAKING_ClientRequestingMatchmaking,
             HandleClientRequestMatchmaking);
         EventCenter.AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed,HandleMatchmakingFailed);
-        EventCenter.AddListener<string>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,HandleClientRequestMatchmakingSuccess);
+        
+        EventCenter.AddListener<string,int, PlayerTeamInfo[]>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,HandleClientRequestMatchmakingSuccess);
         EventCenter.AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet,HandleClientReadyToGetMatch);
         EventCenter.AddListener<bool,bool,string>(EventType.MENU_WaitingNetworkResponse,HandleStartLoadingCircle);
         EventCenter.AddListener(EventType.MENU_StopWaitingNetworkResponse,HandleStopLoadingCircle);
@@ -77,7 +78,7 @@ public class MenuManager : RootPanel {
         EventCenter.RemoveListener(EventType.MENU_AuthorityOnConnected, HandleOnEnterMasterServerSuccess);
         EventCenter.RemoveListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
         EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed, HandleMatchmakingFailed);
-        EventCenter.RemoveListener<string>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, HandleClientRequestMatchmakingSuccess);
+        EventCenter.RemoveListener<string,int, PlayerTeamInfo[]>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, HandleClientRequestMatchmakingSuccess);
         EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet, HandleClientReadyToGetMatch);
     }
 
@@ -182,15 +183,20 @@ public class MenuManager : RootPanel {
         }
     }
 
-    private void HandleClientRequestMatchmakingSuccess(string matchId) {
+    private void HandleClientRequestMatchmakingSuccess(string matchId,int joinedTeamId,PlayerTeamInfo[] infos) {
         StopWaiting();
+        
         if (cancelMatchmakingButton) {
             cancelMatchmakingButton.gameObject.SetActive(false);
             cancelMatchmakingButton.interactable = false;
         }
-
-
         Debug.Log($"Client request new match room success! Matchid: {matchId}");
+        //lobby panel setup
+        if (gamemodePanel) {
+            gamemodePanel.SetActive(false);
+        }
+       
+        
     }
     #endregion
 

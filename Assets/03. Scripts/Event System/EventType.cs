@@ -25,6 +25,8 @@ public enum EventType
     MENU_MATCHMAKING_ClientMatchmakingCancelled,
     MENU_MATCHMAKING_ClientMatchmakingReadyToGet,
     MENU_OnServerPlayerAdded,
-    MENU_OnServerPlayerDisconnected
+    MENU_OnServerPlayerDisconnected,
+    MENU_OnClientPlayerDisconnected,
+    MENU_OnClientNewPlayerJoinLobby
 
 }

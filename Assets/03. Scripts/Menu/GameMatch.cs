@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -41,17 +42,29 @@ public class GameMatch : NetworkBehaviour {
         team = new Team(gamemode.GetTeamNumber(), gamemode.GetRequiredPlayerNumber());
     }
 
+    public Action<MasterServerPlayer,int> onNewPlayerJoins;
+
+    /// <summary>
+    /// Join a player into this match. The player is successfully joined if the room is not full and if they are not
+    /// currently in the match.
+    /// Return true if successfully joined, and invoke the event of this object "onNewPlayerJoins" on the server
+    /// </summary>
+    /// <param name="player"></param>
+    /// <returns></returns>
     [ServerCallback]
-    public bool JoinPlayer(MasterServerPlayer player) {
-        bool result = team.AddPlayerToTeam(player);
+    public bool JoinPlayer(MasterServerPlayer player,out int teamId) { 
+        bool result = team.AddPlayerToTeam(player,out teamId);
         if (result) {
             Debug.Log($"Added {player.DisplayName} to match {matchId}");
         }
         else {
-            Debug.Log($"{player.DisplayName} already exists in match {matchId}!");
+            Debug.Log($"The room is full, or {player.DisplayName} already exists in match {matchId}!");
+            return false;
         }
         playersInMatch.Add(player);
+        onNewPlayerJoins?.Invoke(player,teamId);
         player.onPlayerDisconnect += OnPlayerDisconnect;
+        //broadcast new player join
         return result;
     }
 
@@ -84,12 +97,40 @@ public class GameMatch : NetworkBehaviour {
     [Server]
     private void OnPlayerDisconnect(MasterServerPlayer player) {
         team.RemovePlayerFromTeam(player);
-        print($"{player.DisplayName} existed match room {matchId}");
+        print($"{player.DisplayName} exited match room {matchId}");
         RemoveListener(player);
     }
 
     private void RemoveListener(MasterServerPlayer player) {
         player.onPlayerDisconnect -= OnPlayerDisconnect;
+    }
+
+    /// <summary>
+    /// return a list of all existing name in the match
+    /// </summary>
+    /// <returns></returns>
+    public List<List<string>> GetExistingFactionNameList()
+    {
+        return team.GetExistingFactionNameList();
+    }
+
+    /// <summary>
+    /// Get an array of names from a given team
+    /// </summary>
+    /// <param name="faction"></param>
+    /// <returns></returns>
+    public string[] GetNameList(int faction)
+    {
+        return team.GetNameList(faction);
+    }
+
+    /// <summary>
+    /// Return an array of PlayTeamInfo, which includes the information of which player is in which team
+    /// </summary>
+    /// <returns></returns>
+    public PlayerTeamInfo[] GetExistingPlayerTeamInfos()
+    {
+        return team.GetExistingPlayerTeamInfos().ToArray();
     }
 }
 

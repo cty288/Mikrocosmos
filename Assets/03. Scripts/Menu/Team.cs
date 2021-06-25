@@ -1,16 +1,21 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening.Plugins;
 using Mirror;
-using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class Team {
     private List<Faction> factions;
     private int totalPlayerNumber;
     private int currentPlayerNumber;
+    private List<PlayerTeamInfo> playerTeamInfos;
     
     public Team(int teamNumber, int totalPlayerNumber) {
         this.totalPlayerNumber = totalPlayerNumber;
         this.currentPlayerNumber = 0;
+        playerTeamInfos = new List<PlayerTeamInfo>();
+
         factions = new List<Faction>();
         for (int i = 0; i < teamNumber; i++)
         {
@@ -43,23 +48,32 @@ public class Team {
     /// Add player to a random and available team, return if add success
     /// </summary>
     /// <param name="player"></param>
-    public bool AddPlayerToTeam(MasterServerPlayer player) {
+    /// <param name="teamNum">The id of the team (0 is team1, 1 is team2,etc.)</param>
+    /// <returns></returns>
+    public bool AddPlayerToTeam(MasterServerPlayer player,out int teamNum) {
         if (currentPlayerNumber >= totalPlayerNumber) {
+            teamNum = -1;
             return false;
         }
 
         if (IsSamePlayerExist(player)) {
+            teamNum = -1;
             return false;
         }
 
-        Faction faction = factions[Random.Range(0, factions.Count)];
+        int teamId = Random.Range(0, factions.Count);
+        Faction faction = factions[teamId];
 
         while (faction.isFull()) {
-            faction = factions[Random.Range(0, factions.Count)];
+            teamId = Random.Range(0, factions.Count);
+            faction = factions[teamId];
         }
 
         faction.members.Add(player);
+        playerTeamInfos[currentPlayerNumber] = new PlayerTeamInfo(player.DisplayName, teamId);
+
         currentPlayerNumber++;
+        teamNum = teamId;
         return true;
     }
 
@@ -72,9 +86,12 @@ public class Team {
             return false;
         }
         factions[faction].members.Add(player);
+        playerTeamInfos.Add(new PlayerTeamInfo(player.DisplayName, faction));
         currentPlayerNumber++;
         return true;
     }
+
+
 
     private bool IsSamePlayerExist(MasterServerPlayer player) {
         foreach (Faction faction in factions) {
@@ -98,6 +115,14 @@ public class Team {
                 }
             }
         }
+
+        for (int i = 0; i < playerTeamInfos.Count; i++) {
+            if (player.DisplayName == playerTeamInfos[i].DisplayName) {
+                playerTeamInfos.RemoveAt(i);
+                return;
+            }
+        }
+
     }
 
     /// <summary>
@@ -106,6 +131,49 @@ public class Team {
     /// <returns></returns>
     public bool IsFull() {
         return currentPlayerNumber >= totalPlayerNumber;
+    }
+
+    /// <summary>
+    /// return a list of all existing name in the match
+    /// </summary>
+    /// <returns></returns>
+    public List<List<string>> GetExistingFactionNameList() {
+        List<List<string>> result = new List<List<string>>();
+        for (int i = 0; i < factions.Count; i++) {
+            for (int j = 0; j < factions[i].members.Count; j++) {
+                result[i][j] = factions[i].members[j].DisplayName;
+            }
+        }
+
+        return result;
+    }
+
+    public string[] GetNameList(int faction) {
+        List<MasterServerPlayer> members = factions[faction].members;
+        string[] names = new string[members.Count];
+        for (int i = 0; i < names.Length; i++) {
+            names[i] = members[i].DisplayName;
+        }
+
+        return names;
+    }
+
+    /// <summary>
+    /// Return an array of PlayTeamInfo, which includes the information of which player is in which team
+    /// </summary>
+    /// <returns></returns>
+    public List<PlayerTeamInfo> GetExistingPlayerTeamInfos() {
+        return playerTeamInfos;
+    }
+}
+
+public struct PlayerTeamInfo {
+    public string DisplayName;
+    public int teamId;
+
+    public PlayerTeamInfo(string displayName, int teamId) {
+        this.DisplayName = displayName;
+        this.teamId = teamId;
     }
 }
 
