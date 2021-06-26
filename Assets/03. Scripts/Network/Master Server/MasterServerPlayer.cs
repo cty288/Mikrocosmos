@@ -368,7 +368,6 @@ public class MasterServerPlayer : NetworkBehaviour {
     [TargetRpc]
     private void TargetOnLobbyInfoUpdated(PlayerTeamInfo[] infos) {
         if (hasAuthority) {
-            Debug.Log("Client got updated Team Info "+infos.Length);
             EventCenter.Broadcast(EventType.MENU_OnClientLobbyInfoUpdated,infos);
         }
     }

@@ -64,6 +64,10 @@ public class GameMatch : NetworkBehaviour {
         playersInMatch.Add(player);
         onNewPlayerJoins?.Invoke(player,teamInfo);
         player.onPlayerDisconnect += OnPlayerDisconnect;
+
+        teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
+        //update again after a few secs
+        StartCoroutine(UpdatePlayerTeamInfos());
         //broadcast new player join
         return result;
     }
@@ -97,6 +101,7 @@ public class GameMatch : NetworkBehaviour {
     [Server]
     private void OnPlayerDisconnect(MasterServerPlayer player) {
         team.RemovePlayerFromTeam(player);
+        teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
         print($"{player.DisplayName} exited match room {matchId}");
         RemoveListener(player);
     }
@@ -137,14 +142,13 @@ public class GameMatch : NetworkBehaviour {
     
     [ServerCallback] 
     void Start() {
-        StartCoroutine(UpdatePlayerTeamInfos());
+       // StartCoroutine(UpdatePlayerTeamInfos());
     }
 
     private IEnumerator UpdatePlayerTeamInfos() {
-        while (!isGameAlreadyStart) {
-            Debug.Log("Match refreshing...");
+        if (!isGameAlreadyStart) {
+            yield return new WaitForSeconds(1.5f);
             teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
-            yield return new WaitForSeconds(1);
         }
     }
 }
