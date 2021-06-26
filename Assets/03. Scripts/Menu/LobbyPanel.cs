@@ -37,11 +37,11 @@ public class LobbyPanel : MonoBehaviour {
 
 
     private void AddLobbyPanelChildListeners() {
-        EventCenter.AddListener<PlayerTeamInfo[]>(EventType.MENU_OnClientLobbyInfoUpdated,DisplayPlayerToLobby);
+        EventCenter.AddListener<PlayerTeamInfo[],PlayerTeamInfo>(EventType.MENU_OnClientLobbyInfoUpdated,DisplayPlayerToLobby);
     }
 
     private void RemoveLobbyPanelChildListeners() {
-        EventCenter.RemoveListener<PlayerTeamInfo[]>(EventType.MENU_OnClientLobbyInfoUpdated, DisplayPlayerToLobby);
+        EventCenter.RemoveListener<PlayerTeamInfo[], PlayerTeamInfo>(EventType.MENU_OnClientLobbyInfoUpdated, DisplayPlayerToLobby);
     }
 
     private void HandleClientJoinLobby(PlayerTeamInfo thisPlayerInfo) {
@@ -51,104 +51,17 @@ public class LobbyPanel : MonoBehaviour {
         }
     }
 
-    /*
-    private void HandleOnNewPlayerJoinLobby(PlayerTeamInfo info) {
-        print($"New Player {info.DisplayName} Join team {info.teamId}");
-        DisplayPlayerToLobby(info);
-    }
 
-    /// <summary>
-    /// When a player (including other players) disconnected, remove them from the lobby player list
-    /// </summary>
-    /// <param name="player"></param>
-    private void HandleOnPlayerDisconnected(PlayerTeamInfo teamInfo){
-        if (lobbyPanel.gameObject.activeInHierarchy) {
-            Debug.Log($"Lobby Panel: Detected {teamInfo.DisplayName} left the server. TeamId: {teamInfo.teamId}");
-            if (teamInfo.teamId < 0)
-            {
-                bool success = false;
-                for (int i = 0; i < teams.Length; i++)
-                {
-                    success = HandleOnPlayerDisconnected(i, teamInfo.DisplayName);
-                    if (success)
-                    {
-                        return;
-                    }
-                }
-
-                return;
-            }
-
-
-            if (teams[teamInfo.teamId])
-            {
-                Transform team = teams[teamInfo.teamId];
-                PlayerInfo[] playerInfos = team.GetComponentsInChildren<PlayerInfo>();
-                if (lobbyPanel.gameObject.activeInHierarchy)
-                {
-                    if (playerInfos != null && playerInfos.Length > 0)
-                    {
-                        foreach (PlayerInfo playerInfo in playerInfos)
-                        {
-                            if (playerInfo != null)
-                            {
-                                if (playerInfo.GetPlayerTeamInfo().Equals(teamInfo))
-                                {
-                                    print($"{teamInfo.DisplayName} existed the (client) lobby");
-                                    Destroy(playerInfo.gameObject);
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private bool HandleOnPlayerDisconnected(int teamId, string displayName)
-    {
-        
-        if (teams[teamId])
-        {
-            Transform team = teams[teamId];
-            PlayerInfo[] playerInfos = team.GetComponentsInChildren<PlayerInfo>();
-            if (lobbyPanel.gameObject.activeInHierarchy)
-            {
-                if (playerInfos != null && playerInfos.Length > 0)
-                {
-                    foreach (PlayerInfo playerInfo in playerInfos)
-                    {
-                        if (playerInfo != null)
-                        {
-                            if (playerInfo.GetPlayerTeamInfo().DisplayName==displayName)
-                            {
-                                Destroy(playerInfo.gameObject);
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-    /*private void DisplayPlayerToLobby(PlayerTeamInfo teamInfo) {
-        if (teamInfo.teamId >= 0 && lobbyPanel.gameObject.activeInHierarchy) {
-            GameObject playerInfoObj = Instantiate(playerInfoPrefabs[teamInfo.teamId]);
-            playerInfoObj.transform.parent = teams[teamInfo.teamId];
-
-            PlayerInfo playerInfo = playerInfoObj.GetComponent<PlayerInfo>();
-            playerInfo.SetPlayerTeamInfo(teamInfo);
-        }
-    }*/
-
-    private void DisplayPlayerToLobby(PlayerTeamInfo[] teamInfo) {
+    private void DisplayPlayerToLobby(PlayerTeamInfo[] teamInfo, PlayerTeamInfo myInfo) {
         List<PlayerTeamInfo> team0 = new List<PlayerTeamInfo>();
         List<PlayerTeamInfo> team1 = new List<PlayerTeamInfo>();
 
 
         for (int i = 0; i < teamInfo.Length; i++) {
+            if (teamInfo[i].DisplayName == myInfo.DisplayName) {
+                continue;
+            }
+
             if (teamInfo[i].teamId == 0) {
                 team0.Add(teamInfo[i]);
             }
@@ -157,6 +70,13 @@ public class LobbyPanel : MonoBehaviour {
             {
                 team1.Add(teamInfo[i]);
             }
+        }
+
+        if (myInfo.teamId == 0) {
+            team0.Insert(0,myInfo);
+        }else if (myInfo.teamId == 1)
+        {
+            team1.Insert(0,myInfo);
         }
 
         for (int i = 0; i < team1Info.Length; i++) {

@@ -146,11 +146,18 @@ public class GameMatch : NetworkBehaviour {
     }
 
     private IEnumerator UpdatePlayerTeamInfos() {
-        if (!isGameAlreadyStart) {
-            yield return new WaitForSeconds(1.5f);
-            teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
+        for (int i = 0; i < 3; i++)
+        {
+            if (!isGameAlreadyStart) {
+                yield return new WaitForSeconds(1.5f);
+                teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
+            }
+
         }
+
     }
 }
 
+////
+/// 
 

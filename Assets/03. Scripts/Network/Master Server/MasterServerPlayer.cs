@@ -113,7 +113,7 @@ public class MasterServerPlayer : NetworkBehaviour {
 
     private void ServerUpdateTeamInfo(PlayerTeamInfo[] teamInfo) {
         print("Server updating team info "+teamInfo.Length);
-        TargetOnLobbyInfoUpdated(teamInfo);
+        TargetOnLobbyInfoUpdated(teamInfo,this.teamInfo);
     }
 
 
@@ -366,9 +366,9 @@ public class MasterServerPlayer : NetworkBehaviour {
 
 
     [TargetRpc]
-    private void TargetOnLobbyInfoUpdated(PlayerTeamInfo[] infos) {
+    private void TargetOnLobbyInfoUpdated(PlayerTeamInfo[] infos, PlayerTeamInfo myInfo) {
         if (hasAuthority) {
-            EventCenter.Broadcast(EventType.MENU_OnClientLobbyInfoUpdated,infos);
+            EventCenter.Broadcast(EventType.MENU_OnClientLobbyInfoUpdated,infos,myInfo);
         }
     }
 
