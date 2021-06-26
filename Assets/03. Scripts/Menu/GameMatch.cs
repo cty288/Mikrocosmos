@@ -42,7 +42,7 @@ public class GameMatch : NetworkBehaviour {
         team = new Team(gamemode.GetTeamNumber(), gamemode.GetRequiredPlayerNumber());
     }
 
-    public Action<MasterServerPlayer,int> onNewPlayerJoins;
+    public Action<MasterServerPlayer,PlayerTeamInfo> onNewPlayerJoins;
 
     /// <summary>
     /// Join a player into this match. The player is successfully joined if the room is not full and if they are not
@@ -52,8 +52,8 @@ public class GameMatch : NetworkBehaviour {
     /// <param name="player"></param>
     /// <returns></returns>
     [ServerCallback]
-    public bool JoinPlayer(MasterServerPlayer player,out int teamId) { 
-        bool result = team.AddPlayerToTeam(player,out teamId);
+    public bool JoinPlayer(MasterServerPlayer player, PlayerTeamInfo teamInfo) { 
+        bool result = team.AddPlayerToTeam(player, teamInfo);
         if (result) {
             Debug.Log($"Added {player.DisplayName} to match {matchId}");
         }
@@ -62,7 +62,7 @@ public class GameMatch : NetworkBehaviour {
             return false;
         }
         playersInMatch.Add(player);
-        onNewPlayerJoins?.Invoke(player,teamId);
+        onNewPlayerJoins?.Invoke(player,teamInfo);
         player.onPlayerDisconnect += OnPlayerDisconnect;
         //broadcast new player join
         return result;
@@ -128,9 +128,24 @@ public class GameMatch : NetworkBehaviour {
     /// Return an array of PlayTeamInfo, which includes the information of which player is in which team
     /// </summary>
     /// <returns></returns>
-    public PlayerTeamInfo[] GetExistingPlayerTeamInfos()
+    private PlayerTeamInfo[] GetExistingPlayerTeamInfos()
     {
         return team.GetExistingPlayerTeamInfos().ToArray();
+    }
+
+    public Action<PlayerTeamInfo[]> teamInfoUpdate;
+    
+    [ServerCallback] 
+    void Start() {
+        StartCoroutine(UpdatePlayerTeamInfos());
+    }
+
+    private IEnumerator UpdatePlayerTeamInfos() {
+        while (!isGameAlreadyStart) {
+            Debug.Log("Match refreshing...");
+            teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
+            yield return new WaitForSeconds(1);
+        }
     }
 }
 

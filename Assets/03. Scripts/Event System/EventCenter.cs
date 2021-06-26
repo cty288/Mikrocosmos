@@ -13,9 +13,11 @@ public static class EventCenter
     /// <param name="callBack">A callback function, which can have 0-5 parameters</param>
     public static void AddListener(EventType eventType, CallBack callBack)
     {
-        OnListenerAdding(eventType, callBack);
-        //多播委托相加
-        eventTable[eventType] = (CallBack)eventTable[eventType] + callBack;
+        if (OnListenerAdding(eventType, callBack)) {
+            //多播委托相加
+            eventTable[eventType] = (CallBack)eventTable[eventType] + callBack;
+        }
+
     }
 
 
@@ -27,41 +29,46 @@ public static class EventCenter
     /// <param name="callBack">A callback function, which can have 1 parameters</param>
     public static void AddListener<T>(EventType eventType, CallBack<T> callBack)
     {
-        OnListenerAdding(eventType, callBack);
-        //多播委托相加
-        eventTable[eventType] = (CallBack<T>)eventTable[eventType] + callBack;
+        if (OnListenerAdding(eventType, callBack)) {
+            //多播委托相加
+            eventTable[eventType] = (CallBack<T>) eventTable[eventType] + callBack;
+        }
     }
 
 
     public static void AddListener<T, X>(EventType eventType, CallBack<T, X> callBack)
     {
-        OnListenerAdding(eventType, callBack);
-        //多播委托相加
-        eventTable[eventType] = (CallBack<T, X>)eventTable[eventType] + callBack;
+        if (OnListenerAdding(eventType, callBack)) {
+            //多播委托相加
+            eventTable[eventType] = (CallBack<T, X>) eventTable[eventType] + callBack;
+        }
     }
 
 
     public static void AddListener<T, X, Y>(EventType eventType, CallBack<T, X, Y> callBack)
     {
-        OnListenerAdding(eventType, callBack);
-        //多播委托相加
-        eventTable[eventType] = (CallBack<T, X, Y>)eventTable[eventType] + callBack;
+        if (OnListenerAdding(eventType, callBack)) {
+            //多播委托相加
+            eventTable[eventType] = (CallBack<T, X, Y>) eventTable[eventType] + callBack;
+        }
     }
 
 
     public static void AddListener<T, X, Y, Z>(EventType eventType, CallBack<T, X, Y, Z> callBack)
     {
-        OnListenerAdding(eventType, callBack);
-        //多播委托相加
-        eventTable[eventType] = (CallBack<T, X, Y, Z>)eventTable[eventType] + callBack;
+        if (OnListenerAdding(eventType, callBack)) {
+            //多播委托相加
+            eventTable[eventType] = (CallBack<T, X, Y, Z>) eventTable[eventType] + callBack;
+        }
     }
 
 
     public static void AddListener<T, X, Y, Z, W>(EventType eventType, CallBack<T, X, Y, Z, W> callBack)
     {
-        OnListenerAdding(eventType, callBack);
-        //多播委托相加
-        eventTable[eventType] = (CallBack<T, X, Y, Z, W>)eventTable[eventType] + callBack;
+        if (OnListenerAdding(eventType, callBack)) {
+            //多播委托相加
+            eventTable[eventType] = (CallBack<T, X, Y, Z, W>) eventTable[eventType] + callBack;
+        }
     }
 
     /// <summary>
@@ -74,10 +81,6 @@ public static class EventCenter
         OnListenerRemoving(eventType, callBack);
         //移除指定的回调函数
         eventTable[eventType] = (CallBack)eventTable[eventType] - callBack;
-        if (eventTable[eventType] == null)
-        {
-            eventTable.Remove(eventType);
-        }
         OnListenerRemoved(eventType);
     }
 
@@ -260,12 +263,13 @@ public static class EventCenter
             }
         }
     }
-    private static void OnListenerAdding(EventType eventType, Delegate callBack)
+    private static bool OnListenerAdding(EventType eventType, Delegate callBack)
     {
         //事件库指定事件类型的值为空时, 为该事件类型创建一个新的空间, 并加入委托
         if (!eventTable.ContainsKey(eventType))
         {
             eventTable.Add(eventType, callBack);
+            return false;
         }
 
         //当把一个委托加入现有的事件类型中时, 先判断这个委托类型是否符合先前的类型
@@ -273,7 +277,9 @@ public static class EventCenter
         if (d != null && d.GetType() != callBack.GetType())
         {
             throw new Exception(string.Format("A wrong type of delegate {0} was trying to be added to event {1}. The proper type is {2}", d.GetType(), eventType, callBack.GetType()));
+            return false;
         }
+        return true;
     }
 
     private static void OnListenerRemoving(EventType eventType, Delegate callBack)

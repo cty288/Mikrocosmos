@@ -59,10 +59,9 @@ public class MenuManager : RootPanel {
             HandleClientRequestMatchmaking);
         EventCenter.AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed,HandleMatchmakingFailed);
         
-        EventCenter.AddListener<string,int, PlayerTeamInfo[]>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,HandleClientRequestMatchmakingSuccess);
+        EventCenter.AddListener<PlayerTeamInfo>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,HandleClientRequestMatchmakingSuccess);
         EventCenter.AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet,HandleClientReadyToGetMatch);
-        EventCenter.AddListener<bool,bool,string>(EventType.MENU_WaitingNetworkResponse,HandleStartLoadingCircle);
-        EventCenter.AddListener(EventType.MENU_StopWaitingNetworkResponse,HandleStopLoadingCircle);
+
     }
 
     private void OnDestroyRemoveListeners()
@@ -70,15 +69,13 @@ public class MenuManager : RootPanel {
         EventCenter.RemoveListener(EventType.MENU_OnNewUserEnterMenu, HandleOpenNewUserPanel);
         EventCenter.RemoveListener(EventType.MENU_OnUserEnterMenu, HandleOnUserEnterMenu);
 
-        EventCenter.RemoveListener<bool, bool, string>(EventType.MENU_WaitingNetworkResponse, HandleStartLoadingCircle);
-        EventCenter.RemoveListener(EventType.MENU_StopWaitingNetworkResponse, HandleStopLoadingCircle);
         EventCenter.RemoveListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
         EventCenter.RemoveListener<bool, bool, string>(EventType.MENU_MATCHMAKING_ClientRequestingMatchmaking,
             HandleClientRequestMatchmaking);
         EventCenter.RemoveListener(EventType.MENU_AuthorityOnConnected, HandleOnEnterMasterServerSuccess);
         EventCenter.RemoveListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
         EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed, HandleMatchmakingFailed);
-        EventCenter.RemoveListener<string,int, PlayerTeamInfo[]>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, HandleClientRequestMatchmakingSuccess);
+        EventCenter.RemoveListener<PlayerTeamInfo>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, HandleClientRequestMatchmakingSuccess);
         EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet, HandleClientReadyToGetMatch);
     }
 
@@ -183,14 +180,14 @@ public class MenuManager : RootPanel {
         }
     }
 
-    private void HandleClientRequestMatchmakingSuccess(string matchId,int joinedTeamId,PlayerTeamInfo[] infos) {
+    private void HandleClientRequestMatchmakingSuccess(PlayerTeamInfo thisPlayerTeamInfo) {
         StopWaiting();
         
         if (cancelMatchmakingButton) {
             cancelMatchmakingButton.gameObject.SetActive(false);
             cancelMatchmakingButton.interactable = false;
         }
-        Debug.Log($"Client request new match room success! Matchid: {matchId}");
+        Debug.Log($"Client request new match room success! Matchid: {thisPlayerTeamInfo.matchId}");
         //lobby panel setup
         if (gamemodePanel) {
             gamemodePanel.SetActive(false);
@@ -208,7 +205,7 @@ public class MenuManager : RootPanel {
     public void StartWaiting(bool hasloadingMessage = false, bool hasLoadingPeriod = false, string
         loadingMessageLocalized = "")
     {
-        EventCenter.Broadcast(EventType.MENU_WaitingNetworkResponse,hasloadingMessage,hasLoadingPeriod, loadingMessageLocalized);
+        HandleStartLoadingCircle(hasloadingMessage,hasLoadingPeriod,loadingMessageLocalized);
     }
 
     /// <summary>
@@ -216,7 +213,7 @@ public class MenuManager : RootPanel {
     /// </summary>
     public void StopWaiting()
     {
-        EventCenter.Broadcast(EventType.MENU_StopWaitingNetworkResponse);
+        HandleStopLoadingCircle();
     }
 
     public void UpdateAndSaveDisplayName(string newName,Action<string> onSuccess,Action<PlayFabError> onFailed) {
@@ -262,5 +259,6 @@ public class MenuManager : RootPanel {
             cancelMatchmakingButton.gameObject.SetActive(false);
             StopWaiting();
         }
+        
     }
 }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening.Plugins;
 using Mirror;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class Team {
@@ -50,14 +51,14 @@ public class Team {
     /// <param name="player"></param>
     /// <param name="teamNum">The id of the team (0 is team1, 1 is team2,etc.)</param>
     /// <returns></returns>
-    public bool AddPlayerToTeam(MasterServerPlayer player,out int teamNum) {
+    public bool AddPlayerToTeam(MasterServerPlayer player, PlayerTeamInfo playerTeamInfo) {
         if (currentPlayerNumber >= totalPlayerNumber) {
-            teamNum = -1;
+            playerTeamInfo.teamId = -1;
             return false;
         }
 
         if (IsSamePlayerExist(player)) {
-            teamNum = -1;
+            playerTeamInfo.teamId = -1;
             return false;
         }
 
@@ -70,14 +71,14 @@ public class Team {
         }
 
         faction.members.Add(player);
-        playerTeamInfos[currentPlayerNumber] = new PlayerTeamInfo(player.DisplayName, teamId);
-
+        
         currentPlayerNumber++;
-        teamNum = teamId;
+        playerTeamInfo.teamId = teamId;
+        playerTeamInfos.Add(playerTeamInfo);
         return true;
     }
 
-    private bool AddPlayerToTeam(MasterServerPlayer player, int faction) {
+    private bool AddPlayerToTeam(MasterServerPlayer player, int faction, PlayerTeamInfo playerTeamInfo) {
         if (factions[faction].isFull()) {
             return false;
         }
@@ -86,7 +87,8 @@ public class Team {
             return false;
         }
         factions[faction].members.Add(player);
-        playerTeamInfos.Add(new PlayerTeamInfo(player.DisplayName, faction));
+        playerTeamInfo.teamId = faction;
+        playerTeamInfos.Add(playerTeamInfo);
         currentPlayerNumber++;
         return true;
     }
@@ -108,21 +110,31 @@ public class Team {
     public void RemovePlayerFromTeam(MasterServerPlayer player) {
         for (int i = 0; i < factions.Count; i++) {
             for (int j = 0; j < factions[i].members.Count; j++) {
-                if (factions[i].members[j].DisplayName == player.DisplayName) {
+                string displayName = factions[i].members[j].DisplayName;
+                if (displayName == player.DisplayName) {
+                    
                     factions[i].members.RemoveAt(j);
                     currentPlayerNumber--;
+                    RemovePlayerFromPlayerTeamInfos(displayName);
                     return;
                 }
             }
         }
 
-        for (int i = 0; i < playerTeamInfos.Count; i++) {
-            if (player.DisplayName == playerTeamInfos[i].DisplayName) {
+        
+
+    }
+
+    private void RemovePlayerFromPlayerTeamInfos(string displayName) {
+        for (int i = 0; i < playerTeamInfos.Count; i++)
+        {
+            if (displayName == playerTeamInfos[i].DisplayName)
+            {
+                Debug.Log($"Removed {displayName} from server team");
                 playerTeamInfos.RemoveAt(i);
                 return;
             }
         }
-
     }
 
     /// <summary>
@@ -167,13 +179,34 @@ public class Team {
     }
 }
 
-public struct PlayerTeamInfo {
+public class PlayerTeamInfo {
     public string DisplayName;
     public int teamId;
+    public string matchId;
 
-    public PlayerTeamInfo(string displayName, int teamId) {
+    public PlayerTeamInfo(string displayName, int teamId,string matchId) {
         this.DisplayName = displayName;
         this.teamId = teamId;
+        this.matchId = matchId;
+    }
+
+    public PlayerTeamInfo()
+    {
+        this.DisplayName = "";
+        this.teamId = -1;
+        this.matchId = "";
+    }
+    public override bool Equals(object other)
+    {
+        if (other == null) { return false; }
+        if (GetType() != other.GetType()) { return false; }
+
+        PlayerTeamInfo otherInfo = (PlayerTeamInfo)other;
+
+        if (otherInfo.DisplayName == DisplayName && otherInfo.teamId == teamId && otherInfo.matchId == matchId) {
+            return true;
+        }
+        return false;
     }
 }
 

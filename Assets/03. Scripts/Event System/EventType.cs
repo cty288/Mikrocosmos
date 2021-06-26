@@ -16,8 +16,6 @@ public enum EventType
     MENU_AuthorityOnConnected,
     MENU_OnNewUserEnterMenu,
     MENU_OnUserEnterMenu,
-    MENU_WaitingNetworkResponse,
-    MENU_StopWaitingNetworkResponse,
     MENU_Error,
     MENU_MATCHMAKING_ClientRequestingMatchmaking,
     MENU_MATCHMAKING_ClientMatchmakingSuccess,
@@ -26,7 +24,8 @@ public enum EventType
     MENU_MATCHMAKING_ClientMatchmakingReadyToGet,
     MENU_OnServerPlayerAdded,
     MENU_OnServerPlayerDisconnected,
-    MENU_OnClientPlayerDisconnected,
-    MENU_OnClientNewPlayerJoinLobby
+    //MENU_OnClientPlayerDisconnected,
+    //MENU_OnClientNewPlayerJoinLobby,
+    MENU_OnClientLobbyInfoUpdated
 
 }

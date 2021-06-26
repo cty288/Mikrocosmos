@@ -16,9 +16,6 @@ public class MasterServerPlayer : NetworkBehaviour {
     [SyncVar] private long lastCommandTick = 0;
 
     [SyncVar][SerializeField]
-    private string matchId;
-
-    [SyncVar][SerializeField]
     private string displayName;
     public string DisplayName => displayName;
 
@@ -31,7 +28,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     private Mode requestingMode;
 
     [SyncVar] 
-    private int teamId = -1;
+    private PlayerTeamInfo teamInfo;
 
     #region Server
 
@@ -46,6 +43,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     public Action<MasterServerPlayer> onPlayerDisconnect;
     public override void OnStopServer() {
         onPlayerDisconnect?.Invoke(this);
+        RpcOnServerPlayerStop(teamInfo);
         EventCenter.Broadcast(EventType.MENU_OnServerPlayerDisconnected,this);
     }
 
@@ -59,9 +57,10 @@ public class MasterServerPlayer : NetworkBehaviour {
         match = ((MasterServerNetworkManager) NetworkManager.singleton).ServerRequestFindAvailableMatch(mode);
         requestingMode = mode;
         if (match != null) {
-            matchId = match.MatchId;
-            if (match.JoinPlayer(this,out teamId)) {
-                match.onNewPlayerJoins += ServerOnNewPlayerJoinLobby;
+            teamInfo.matchId = match.MatchId;
+
+            if (match.JoinPlayer(this,teamInfo)) {
+                match.teamInfoUpdate += ServerUpdateTeamInfo;
                 EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet);
                 StartCoroutine(WaitWhileGetMatch());
             }
@@ -79,7 +78,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     [Server]
     private IEnumerator WaitWhileGetMatch() {
         yield return new WaitForSeconds(4f);
-        TargetOnServerGetMatch(matchId, this.teamId,match.GetExistingPlayerTeamInfos());
+        TargetOnServerGetMatch(teamInfo);
     }
 
 
@@ -91,10 +90,10 @@ public class MasterServerPlayer : NetworkBehaviour {
                 GameMode.GetGameModeObj(requestingMode), result.MatchId);
         
         if (match != null) {
-            matchId = match.MatchId;
-            if (match.JoinPlayer(this,out teamId)) {
-                match.onNewPlayerJoins += ServerOnNewPlayerJoinLobby;
-                TargetOnServerGetMatch(matchId,this.teamId,match.GetExistingPlayerTeamInfos());
+            teamInfo.matchId = match.MatchId;
+            if (match.JoinPlayer(this,teamInfo)) {
+                match.teamInfoUpdate += ServerUpdateTeamInfo;
+                TargetOnServerGetMatch(teamInfo);
             }
             else {
                 TargetOnServerFailedToGetMatch();
@@ -107,16 +106,21 @@ public class MasterServerPlayer : NetworkBehaviour {
     }
 
 
-    [ServerCallback]
-    private void ServerOnNewPlayerJoinLobby(MasterServerPlayer player,int teamId) {
-        TargetOnNewPlayerJoinsLobby(player.displayName,teamId);   
+    /*[ServerCallback]
+    private void ServerOnNewPlayerJoinLobby(MasterServerPlayer player,PlayerTeamInfo teamInfo) {
+        TargetOnNewPlayerJoinsLobby(teamInfo);   
+    }*/
+
+    private void ServerUpdateTeamInfo(PlayerTeamInfo[] teamInfo) {
+        print("Server updating team info "+teamInfo.Length);
+        TargetOnLobbyInfoUpdated(teamInfo);
     }
 
 
     [Command]
     private void CmdExitCurrentLobby() {
         if (match) {
-            match.onNewPlayerJoins -= ServerOnNewPlayerJoinLobby;
+            match.teamInfoUpdate -= ServerUpdateTeamInfo;
             match = null;
         }
     }
@@ -126,7 +130,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     private void CmdUpdatePlayfabToken(PlayfabToken token) {
         this.displayName = token.PlayerName;
         this.entityId = token.EntityId;
-        print(displayName);
+        this.teamInfo = new PlayerTeamInfo(token.PlayerName, -1, "");
     }
 
     #endregion
@@ -202,11 +206,22 @@ public class MasterServerPlayer : NetworkBehaviour {
 
     /// <summary>
     /// On a client disconnects (includes other players), invoke MENU_OnClientPlayerDisconnected event
+    /// This is invoked by the server when a player on the server disconnects
     /// </summary>
-    public override void OnStopClient() {
-        base.OnStopClient();
-        EventCenter.Broadcast(EventType.MENU_OnClientPlayerDisconnected,this.displayName,teamId);
+    [ClientRpc]
+    public void RpcOnServerPlayerStop(PlayerTeamInfo info) {
+        //print($"{info.DisplayName} left the server, teamID: {info.teamId}");
+        //EventCenter.Broadcast(EventType.MENU_OnClientPlayerDisconnected, teamInfo);
     }
+
+    /// <summary>
+    /// On a client disconnects (includes other players), invoke MENU_OnClientPlayerDisconnected event
+    /// This is invoked by the server when a player on the server disconnects
+    /// </summary>
+   /* public override void OnStopClient() {
+        print($"{teamInfo.DisplayName} left the server, teamID: {teamInfo.teamId}");
+        EventCenter.Broadcast(EventType.MENU_OnClientPlayerDisconnected, teamInfo);
+    }*/
 
     [Client]
     public void RequestMatch(Mode gamemode) {
@@ -226,6 +241,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     }
 
     private IEnumerator StartPlayFabMatchmaking(NetworkConnection target) {
+        pollTicketCancelled = false;
         yield return new WaitForSeconds(0.5f);
         print($"Requesting PlayFab matchmaking, queue name: {GameMode.GetGameModeObj(requestingMode).GetQueueName()}" +
               $"Entity id: {entityId}");
@@ -261,12 +277,14 @@ public class MasterServerPlayer : NetworkBehaviour {
         pollTicketCoroutine = StartCoroutine(ClientPollTicket());
     }
 
+    private bool pollTicketCancelled = false;
     [Client]
     private IEnumerator ClientPollTicket()
     {
         
         print("polling ticket, ticket id: "+this.ticketId);
-        while (true)
+
+        while (!pollTicketCancelled)
         {
             PlayFabMultiplayerAPI.GetMatchmakingTicket(
                 new GetMatchmakingTicketRequest
@@ -281,19 +299,26 @@ public class MasterServerPlayer : NetworkBehaviour {
     [Client]
     private void OnGetMatchmakingTicket(GetMatchmakingTicketResult result)
     {
-        print("Polling a ticket. Result: "+result.Status);
-        //WaitingForPlayers, WaitingForMatch, WaitingForServer, Canceled, Matched
-        switch (result.Status)
-        {
-            case "Matched":
-                StopCoroutine(pollTicketCoroutine);
-                ClientStartMatch(result.MatchId);
-                break;
-            case "Canceled":
-                print("Cancelled");
-                StopCoroutine(pollTicketCoroutine);
-                break;
+        if (!pollTicketCancelled) {
+            print("Polling a ticket. Result: " + result.Status);
+            //WaitingForPlayers, WaitingForMatch, WaitingForServer, Canceled, Matched
+            switch (result.Status)
+            {
+                case "Matched":
+                    StopCoroutine(pollTicketCoroutine);
+                    ClientStartMatch(result.MatchId);
+                    break;
+                case "Canceled":
+                    print("Cancelled");
+                    StopCoroutine(pollTicketCoroutine);
+                    break;
+            }
         }
+        else
+        {
+            CancelMatchmaking();
+        }
+
     }
 
     [Client]
@@ -315,8 +340,8 @@ public class MasterServerPlayer : NetworkBehaviour {
     }
 
     [TargetRpc]
-    private void TargetOnServerGetMatch(string matchId, int joinedTeam, PlayerTeamInfo[] teamInfos) {
-        EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, matchId, joinedTeam,teamInfos);
+    private void TargetOnServerGetMatch(PlayerTeamInfo thisTeamInfo) {
+        EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, thisTeamInfo);
     }
 
     [TargetRpc]
@@ -324,6 +349,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     {
         EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed);
         CancelMatchmaking();
+        
     }
 
     [Client]
@@ -332,13 +358,25 @@ public class MasterServerPlayer : NetworkBehaviour {
         EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed);
         if (pollTicketCoroutine != null) {
             StopCoroutine(pollTicketCoroutine);
+            pollTicketCoroutine = null;
         }
 
         CancelMatchmaking();
     }
 
+
+    [TargetRpc]
+    private void TargetOnLobbyInfoUpdated(PlayerTeamInfo[] infos) {
+        if (hasAuthority) {
+            Debug.Log("Client got updated Team Info "+infos.Length);
+            EventCenter.Broadcast(EventType.MENU_OnClientLobbyInfoUpdated,infos);
+        }
+    }
+
+
     [Client]
     private void CancelMatchmaking() {
+        pollTicketCancelled = true;
         if (hasAuthority && ticketId!="") {
             PlayFabMultiplayerAPI.CancelAllMatchmakingTicketsForPlayer(new CancelAllMatchmakingTicketsForPlayerRequest {
                 QueueName = GameMode.GetGameModeObj(requestingMode).GetQueueName()
@@ -352,18 +390,25 @@ public class MasterServerPlayer : NetworkBehaviour {
 
         if (pollTicketCoroutine != null) {
             StopCoroutine(pollTicketCoroutine);
+            pollTicketCoroutine = null;
         }
+
+        pollTicketCancelled = true;
         print("Matchmaking ticket cancelled success");
     }
 
+
+    /*
     //for future: add avatar
     [TargetRpc]
-    private void TargetOnNewPlayerJoinsLobby(string displayName, int teamId) {
+    private void TargetOnNewPlayerJoinsLobby(PlayerTeamInfo teamInfo) {
         Debug.Log($"{displayName} joined the lobby");
         if (hasAuthority) {
-            EventCenter.Broadcast(EventType.MENU_OnClientNewPlayerJoinLobby,displayName, teamId);
+            EventCenter.Broadcast(EventType.MENU_OnClientNewPlayerJoinLobby, teamInfo);
         }
-    }
+    }*/
+
+
 
     #endregion
 
