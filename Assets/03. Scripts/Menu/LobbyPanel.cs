@@ -138,7 +138,7 @@ public class LobbyPanel : MonoBehaviour {
             case MatchState.StartingGameProcess:
                 SetLeaveLobbyButton(false,false);
                 print("Client starting game process...");
-                StopCountDown();
+                ShowReadyInfo();
                 break;
             case MatchState.GameAlreadyStart:
                 SetLeaveLobbyButton(false,false);
@@ -154,6 +154,13 @@ public class LobbyPanel : MonoBehaviour {
 
     private void StopCountDown() {
         countDownStart = false;
+        gamestartInfo.SetActive(false);
+    }
+
+    private void ShowReadyInfo() {
+        countDownStart = false;
+        gamestartInfo.GetComponentInChildren<Text>().text =
+            Localization.Get("MENU_READY_INFO");
     }
 
     void Update() {
@@ -171,9 +178,6 @@ public class LobbyPanel : MonoBehaviour {
             gamestartInfo.GetComponentInChildren<Text>().text =
                 Localization.GetFormat("LOBBY_START_INFO", countDownToInt.ToString());
 
-        }
-        else {
-            gamestartInfo.SetActive(false);
         }
     }
 

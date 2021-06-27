@@ -10,7 +10,8 @@ public enum MatchState {
     WaitingForPlayers,
     CountDownForMatch,
     StartingGameProcess,
-    GameAlreadyStart
+    GameAlreadyStart,
+    MatchSpawnFailed
 }
 
 public class GameMatch : NetworkBehaviour {
@@ -22,7 +23,9 @@ public class GameMatch : NetworkBehaviour {
     private string matchId;
     public string MatchId => matchId;
 
-    private ulong port;
+    private ushort port;
+    public ushort Port => port;
+
     private string ip;
     public string Ip => ip;
     
@@ -81,7 +84,7 @@ public class GameMatch : NetworkBehaviour {
 
 
     [ServerCallback]
-    public void SetGamemode(GameMode gamemode,string matchId, ulong port) {
+    public void SetGamemode(GameMode gamemode,string matchId, ushort port) {
         this.gamemode = gamemode;
         this.matchId = matchId;
         this.port = port;
@@ -287,17 +290,37 @@ public class GameMatch : NetworkBehaviour {
                     StartCoroutine(UpdateCountDownToClient());
                     break;
                 case MatchState.StartingGameProcess:
+                    //Ready to start game - invoke event and start the process
                     ServerStartGameProcess();
+                    EventCenter.Broadcast(EventType.MENU_OnServerMatchStartingProcess,this);
                     break;
             }
         }
     }
 
     [ServerCallback]
-    private void ServerStartGameProcess() {
+    private bool ServerStartGameProcess() {
         Debug.Log($"Starting game process. Port: {port}");
+        gameProcess = new Process();
+
+        string processPath = ServerInfo.GameModePaths[(int)gamemode.getGameMode()];
+        gameProcess.StartInfo.FileName = System.IO.Path.Combine(processPath, ServerInfo.ProcessName);
+
+        gameProcess.StartInfo.Arguments = ip + " " +
+                                          port + " " +
+                                          matchId+" "+
+                                          true;
+        if (gameProcess.Start()) {
+            Debug.Log("Spawning: " + gameProcess.StartInfo.FileName + "; args=" + gameProcess.StartInfo.Arguments);
+            return true;
+        }
+        else {
+            //TODO: Destroy the process and the gamematch itself
+            return false;
+        }
     }
 
+    
     [ServerCallback]
     private IEnumerator UpdateCountDownToClient() {
         while (matchState == MatchState.CountDownForMatch) {

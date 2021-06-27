@@ -12,16 +12,24 @@ public enum MatchError {
 public class MatchManager : NetworkBehaviour {
     private List<GameMatch> unStartedMatchList;
     private List<GameMatch> startedMatchList;
-    private ulong currentPort = 7778;
-    private const ulong Max_Port = 60000;
-    private const ulong Min_Port = 7778;
+    private ushort currentPort = 7778;
+    private const ushort Max_Port = 60000;
+    private const ushort Min_Port = 7778;
     
     [ServerCallback]
     void Awake() {
         unStartedMatchList = new List<GameMatch>();
         startedMatchList = new List<GameMatch>();
     }
-    
+
+    [ServerCallback]
+    private void Start() {
+        EventCenter.AddListener<GameMatch>(EventType.MENU_OnServerMatchStartingProcess,HandleOnMatchStartingProcess);
+    }
+
+    private void OnDestroy() {
+        EventCenter.RemoveListener<GameMatch>(EventType.MENU_OnServerMatchStartingProcess, HandleOnMatchStartingProcess);
+    }
     /// <summary>
     /// Return an available game match
     /// </summary>
@@ -95,9 +103,26 @@ public class MatchManager : NetworkBehaviour {
     /// </summary>
     [ServerCallback]
     private void UpdatePort() {
-        currentPort++;
-        if (currentPort > Max_Port) {
-            currentPort = Min_Port;
+        do {
+            currentPort++;
+            if (currentPort > Max_Port) {
+                currentPort = Min_Port;
+            }
+        } while (CheckPortDuplicate(currentPort));
+
+    }
+
+    private bool CheckPortDuplicate(ulong port) {
+        for (int i = 0; i < startedMatchList.Count; i++) {
+            if (port == startedMatchList[i].Port) {
+                return true;
+            }
         }
+        return false;
+    }
+
+    private void HandleOnMatchStartingProcess(GameMatch match) {
+        unStartedMatchList.Remove(match);
+        startedMatchList.Add(match);
     }
 }

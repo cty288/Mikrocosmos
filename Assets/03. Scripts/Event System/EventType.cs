@@ -24,12 +24,13 @@ public enum EventType
     MENU_MATCHMAKING_ClientMatchmakingReadyToGet,
     MENU_OnServerPlayerAdded,
     MENU_OnServerPlayerDisconnected,
-    //MENU_OnClientPlayerDisconnected,
-    //MENU_OnClientNewPlayerJoinLobby,
+
     MENU_OnClientLobbyInfoUpdated,
     MENU_OnClientLobbyStateUpdated,
     MENU_OnClientLeaveLobbyFailed,
     MENU_OnClientLeaveLobbySuccess,
-    MENU_OnClientLobbyCountdownUpdated
+    MENU_OnClientLobbyCountdownUpdated,
+
+    MENU_OnServerMatchStartingProcess
 
 }

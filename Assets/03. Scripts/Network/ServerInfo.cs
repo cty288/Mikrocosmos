@@ -9,4 +9,13 @@ public static class ServerInfo {
     public static string ServerIp = "127.0.0.1";
 
     public static ushort MasterServerPort = 7777;
+
+    public static string[] GameModePaths = new[] {
+        @"D:\programming\Mikrocosmos 2\GameServer", //quick
+        @"D:\programming\Mikrocosmos 2\GameServer", //standard
+        @"D:\programming\Mikrocosmos 2\GameServer"  //marathon
+    };
+
+
+    public static string ProcessName = "Mikrocosmos 2.exe";
 }
