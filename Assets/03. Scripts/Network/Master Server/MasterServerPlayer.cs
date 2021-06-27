@@ -63,6 +63,7 @@ public class MasterServerPlayer : NetworkBehaviour {
             if (match.JoinPlayer(this,teamInfo)) {
                 match.teamInfoUpdate += ServerUpdateTeamInfo;
                 match.onMatchStateChange += ServerUpdateMatchState;
+                match.countdownUpdate += ServerUpdateMatchCountdown;
                 TargetOnMatchReadyToGet();
                 StartCoroutine(WaitWhileGetMatch());
             }
@@ -96,6 +97,7 @@ public class MasterServerPlayer : NetworkBehaviour {
             if (match.JoinPlayer(this,teamInfo)) {
                 match.teamInfoUpdate += ServerUpdateTeamInfo;
                 match.onMatchStateChange += ServerUpdateMatchState;
+                match.countdownUpdate += ServerUpdateMatchCountdown;
                 TargetOnServerGetMatch(teamInfo);
             }
             else {
@@ -124,6 +126,9 @@ public class MasterServerPlayer : NetworkBehaviour {
         TargetOnLobbyStateUpdated(matchState);
     }
 
+    private void ServerUpdateMatchCountdown(float countDown) {
+        TargetUpdateCountDown(countDown);
+    }
 
 
     [Server]
@@ -131,6 +136,7 @@ public class MasterServerPlayer : NetworkBehaviour {
         if (match) {
             match.teamInfoUpdate -= ServerUpdateTeamInfo;
             match.onMatchStateChange -= ServerUpdateMatchState;
+            match.countdownUpdate -= ServerUpdateMatchCountdown;
             match = null;
         }
     }
@@ -455,6 +461,12 @@ public class MasterServerPlayer : NetworkBehaviour {
     private void TargetOnMatchReadyToGet() {
         EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet);
     }
+
+    [TargetRpc]
+    private void TargetUpdateCountDown(float countdown) {
+        EventCenter.Broadcast(EventType.MENU_OnClientLobbyCountdownUpdated,countdown);
+    }
+
 
     /*
     //for future: add avatar

@@ -9,7 +9,9 @@ using Random = UnityEngine.Random;
 public class Team {
     private List<Faction> factions;
     private int totalPlayerNumber;
+    public int TotalPlayerNumber => totalPlayerNumber;
     private int currentPlayerNumber;
+    public int CurrentPlayerNumber => currentPlayerNumber;
     private List<PlayerTeamInfo> playerTeamInfos;
     
     public Team(int teamNumber, int totalPlayerNumber) {

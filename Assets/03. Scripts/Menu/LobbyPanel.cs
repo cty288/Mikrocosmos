@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Mirror;
+using Polyglot;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,6 +16,9 @@ public class LobbyPanel : MonoBehaviour {
     [SerializeField] private Button leaveLobbyButton;
     [Tooltip("Each prefab corresponds to each team in the teams array")]
     [SerializeField] private GameObject[] playerInfoPrefabs;
+
+    private float countDown = 10f;
+    private bool countDownStart = false;
 
     void Awake() {
         
@@ -47,11 +51,13 @@ public class LobbyPanel : MonoBehaviour {
     private void AddLobbyPanelChildListeners() {
         EventCenter.AddListener<PlayerTeamInfo[],PlayerTeamInfo>(EventType.MENU_OnClientLobbyInfoUpdated,DisplayPlayerToLobby);
         EventCenter.AddListener<MatchState>(EventType.MENU_OnClientLobbyStateUpdated,HandleLobbyStateUpdate);
+        EventCenter.AddListener<float>(EventType.MENU_OnClientLobbyCountdownUpdated,HandleOnCountdownUpdate);
     }
 
     private void RemoveLobbyPanelChildListeners() {
         EventCenter.RemoveListener<PlayerTeamInfo[], PlayerTeamInfo>(EventType.MENU_OnClientLobbyInfoUpdated, DisplayPlayerToLobby);
         EventCenter.RemoveListener<MatchState>(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
+        EventCenter.RemoveListener<float>(EventType.MENU_OnClientLobbyCountdownUpdated, HandleOnCountdownUpdate);
     }
 
     private void HandleClientJoinLobby(PlayerTeamInfo thisPlayerInfo) {
@@ -123,18 +129,55 @@ public class LobbyPanel : MonoBehaviour {
         switch (matchState) {
             case MatchState.WaitingForPlayers:
                 SetLeaveLobbyButton(true,true);
+                StopCountDown();
                 break;
             case MatchState.CountDownForMatch:
                 SetLeaveLobbyButton(true,true);
+                StartCountDown();
                 break;
             case MatchState.StartingGameProcess:
                 SetLeaveLobbyButton(false,false);
+                print("Client starting game process...");
+                StopCountDown();
                 break;
             case MatchState.GameAlreadyStart:
                 SetLeaveLobbyButton(false,false);
+                StopCountDown();
                 break;
         }
     }
+
+    private void StartCountDown() {
+        countDownStart = true;
+        
+    }
+
+    private void StopCountDown() {
+        countDownStart = false;
+    }
+
+    void Update() {
+        if (countDownStart) {
+            gamestartInfo.SetActive(true);
+
+            countDown -= Time.deltaTime;
+            
+            if (countDown <= 0) {
+                countDown = 0;
+            }
+
+            int countDownToInt = Mathf.RoundToInt(countDown);
+
+            gamestartInfo.GetComponentInChildren<Text>().text =
+                Localization.GetFormat("LOBBY_START_INFO", countDownToInt.ToString());
+
+        }
+        else {
+            gamestartInfo.SetActive(false);
+        }
+    }
+
+   
 
     private void SetLeaveLobbyButton(bool isActive, bool isInteractable) {
         if (leaveLobbyButton) {
@@ -164,5 +207,13 @@ public class LobbyPanel : MonoBehaviour {
         {
             lobbyPanel.gameObject.SetActive(false);
         }
+    }
+
+    private void HandleOnCountdownUpdate(float countDown) {
+        /*if (gamestartInfo.activeInHierarchy) {
+            gamestartInfo.GetComponentInChildren<Text>().text =
+                Localization.GetFormat("LOBBY_START_INFO", countDown.ToString());
+        }*/
+        this.countDown = countDown;
     }
 }

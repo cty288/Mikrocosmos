@@ -33,13 +33,44 @@ public class GameMatch : NetworkBehaviour {
 
     private MatchState matchState = MatchState.WaitingForPlayers;
 
+    public Action<MasterServerPlayer, PlayerTeamInfo> onNewPlayerJoins;
+    public Action<PlayerTeamInfo[]> teamInfoUpdate;
+    //public Action<int> countdownUpdate;
+    public Action<float> countdownUpdate;
+    public Action<MatchState> onMatchStateChange;
+
+   
+    private float countDown = 10f;
 
 
     [ServerCallback]
-    private void UpdateMatchState(MatchState newState) {
-        this.matchState = newState;
-        onMatchStateChange?.Invoke(newState);
+    void Update()
+    {
+        UpdateCountDown();
     }
+
+    private void UpdateCountDown()
+    {
+        if (matchState==MatchState.CountDownForMatch)
+        {
+            countDown -= Time.deltaTime;
+            if (countDown <= 0) {
+                if (team.CurrentPlayerNumber >= team.TotalPlayerNumber) {
+                    UpdateServerMatchState(MatchState.StartingGameProcess);
+                }
+                else {
+                    DetectMatchRoomFull();
+                }
+                
+                countDown = 10;
+            }
+        }
+        else
+        {
+            countDown = 10;
+        }
+    }
+
 
     void Awake() {
         playersInMatch = new List<MasterServerPlayer>();
@@ -57,7 +88,7 @@ public class GameMatch : NetworkBehaviour {
         team = new Team(gamemode.GetTeamNumber(), gamemode.GetRequiredPlayerNumber());
     }
 
-    public Action<MasterServerPlayer,PlayerTeamInfo> onNewPlayerJoins;
+    
 
     /// <summary>
     /// Join a player into this match. The player is successfully joined if the room is not full and if they are not
@@ -87,9 +118,13 @@ public class GameMatch : NetworkBehaviour {
         player.onPlayerDisconnect += OnPlayerDisconnect;
 
         teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
+
+        countdownUpdate?.Invoke(countDown);
         //update again after a few secs
         StartCoroutine(UpdatePlayerTeamInfos());
         //broadcast new player join
+        StartCoroutine(UpdatePlayerCountDownAgain());
+        DetectMatchRoomFull();
         return result;
     }
 
@@ -126,6 +161,7 @@ public class GameMatch : NetworkBehaviour {
         print($"{player.DisplayName} exited match room {matchId}");
         playersInMatch.Remove(player);
         RemoveListener(player);
+        DetectMatchRoomFull();
     }
 
     private void RemoveListener(MasterServerPlayer player) {
@@ -160,8 +196,7 @@ public class GameMatch : NetworkBehaviour {
         return team.GetExistingPlayerTeamInfos().ToArray();
     }
 
-    public Action<PlayerTeamInfo[]> teamInfoUpdate;
-    public Action<MatchState> onMatchStateChange;
+
 
  
     private IEnumerator UpdatePlayerTeamInfos() {
@@ -177,6 +212,12 @@ public class GameMatch : NetworkBehaviour {
 
     }
 
+
+    private IEnumerator UpdatePlayerCountDownAgain() {
+        yield return new WaitForSeconds(2.5f);
+        countdownUpdate?.Invoke(countDown);
+    }
+
     public MatchError LeaveMatch(MasterServerPlayer player) {
         if (matchState == MatchState.StartingGameProcess || matchState == MatchState.GameAlreadyStart) {
             return MatchError.MatchAlreadyStart;
@@ -188,12 +229,16 @@ public class GameMatch : NetworkBehaviour {
             
             RemovePlayerFromPlayerList(player);
             RemoveListener(player);
-            
+
+            DetectMatchRoomFull();
+
             return MatchError.NoError;
         }
         else {
+            DetectMatchRoomFull();
             return MatchError.UnableToFindPlayer;
         }
+        
     }
 
     [ServerCallback]
@@ -209,8 +254,58 @@ public class GameMatch : NetworkBehaviour {
                 }
             }
         }
+    }
 
+    [ServerCallback]
+    private void DetectMatchRoomFull() {
+        if (team.CurrentPlayerNumber >= team.TotalPlayerNumber) {
+            if (matchState == MatchState.WaitingForPlayers) {
+                UpdateServerMatchState(MatchState.CountDownForMatch);
+            }
+        }
+        else { //less than
+            if (matchState == MatchState.CountDownForMatch) {
+               UpdateServerMatchState(MatchState.WaitingForPlayers);
 
+            }else if (matchState == MatchState.StartingGameProcess) {
+                //TODO: kick all players back to lobby; stop process
+                onMatchStateChange?.Invoke(matchState);
+            }
+        }
+    }
+
+    [ServerCallback]
+    private void UpdateServerMatchState(MatchState newState) {
+        if (matchState != newState) {
+            matchState = newState;
+            onMatchStateChange?.Invoke(newState);
+
+            //waiting for player and countdown are processed in the Update Method
+            switch (newState) {
+                case MatchState.CountDownForMatch:
+                    //start coroutine, update countdown to the client for each 1 s
+                    StartCoroutine(UpdateCountDownToClient());
+                    break;
+                case MatchState.StartingGameProcess:
+                    ServerStartGameProcess();
+                    break;
+            }
+        }
+    }
+
+    [ServerCallback]
+    private void ServerStartGameProcess() {
+        Debug.Log($"Starting game process. Port: {port}");
+    }
+
+    [ServerCallback]
+    private IEnumerator UpdateCountDownToClient() {
+        while (matchState == MatchState.CountDownForMatch) {
+            //int countdownToInt = Mathf.RoundToInt(countDown);
+            //countdownUpdate?.Invoke(countdownToInt);
+            countdownUpdate?.Invoke(countDown);
+            yield return new WaitForSeconds(3);
+        }
     }
 }
 

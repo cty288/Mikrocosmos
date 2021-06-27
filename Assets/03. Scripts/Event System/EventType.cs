@@ -29,6 +29,7 @@ public enum EventType
     MENU_OnClientLobbyInfoUpdated,
     MENU_OnClientLobbyStateUpdated,
     MENU_OnClientLeaveLobbyFailed,
-    MENU_OnClientLeaveLobbySuccess
+    MENU_OnClientLeaveLobbySuccess,
+    MENU_OnClientLobbyCountdownUpdated
 
 }
