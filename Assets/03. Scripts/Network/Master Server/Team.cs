@@ -107,7 +107,30 @@ public class Team {
         return false;
     }
 
-    public void RemovePlayerFromTeam(MasterServerPlayer player) {
+    /// <summary>
+    /// Remove the player from teams, according to teamInfo
+    /// </summary>
+    /// <param name="teamInfo"></param>
+    /// <returns>Is removing success?</returns>
+    public bool RemovePlayerFromTeam(PlayerTeamInfo teamInfo) {
+        for (int i = 0; i < factions[teamInfo.teamId].members.Count; i++) {
+            if (factions[teamInfo.teamId].members[i].DisplayName == teamInfo.DisplayName) {
+                factions[teamInfo.teamId].members.RemoveAt(i);
+                currentPlayerNumber--;
+                RemovePlayerFromPlayerTeamInfos(teamInfo.DisplayName);
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
+    /// <summary>
+    /// Remove the player from teams
+    /// </summary>
+    /// <param name="player"></param>
+    /// <returns>Is removing success?</returns>
+    public bool RemovePlayerFromTeam(MasterServerPlayer player) {
         for (int i = 0; i < factions.Count; i++) {
             for (int j = 0; j < factions[i].members.Count; j++) {
                 string displayName = factions[i].members[j].DisplayName;
@@ -116,13 +139,12 @@ public class Team {
                     factions[i].members.RemoveAt(j);
                     currentPlayerNumber--;
                     RemovePlayerFromPlayerTeamInfos(displayName);
-                    return;
+                    return true;
                 }
             }
         }
 
-        
-
+        return false;
     }
 
     private void RemovePlayerFromPlayerTeamInfos(string displayName) {

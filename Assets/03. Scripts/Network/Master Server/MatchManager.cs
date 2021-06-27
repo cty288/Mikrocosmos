@@ -3,6 +3,12 @@ using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
 
+public enum MatchError {
+    UnableToFindMatch,
+    MatchAlreadyStart,
+    UnableToFindPlayer,
+    NoError,
+}
 public class MatchManager : NetworkBehaviour {
     private List<GameMatch> unStartedMatchList;
     private List<GameMatch> startedMatchList;

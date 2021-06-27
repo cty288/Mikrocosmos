@@ -62,6 +62,9 @@ public class MenuManager : RootPanel {
         EventCenter.AddListener<PlayerTeamInfo>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,HandleClientRequestMatchmakingSuccess);
         EventCenter.AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet,HandleClientReadyToGetMatch);
 
+
+        EventCenter.AddListener<MatchError>(EventType.MENU_OnClientLeaveLobbyFailed,HandleLeaveLobbyFailed);
+        EventCenter.AddListener(EventType.MENU_OnClientLeaveLobbySuccess,HandleLeaveLobbySuccess);
     }
 
     private void OnDestroyRemoveListeners()
@@ -77,6 +80,8 @@ public class MenuManager : RootPanel {
         EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed, HandleMatchmakingFailed);
         EventCenter.RemoveListener<PlayerTeamInfo>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, HandleClientRequestMatchmakingSuccess);
         EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet, HandleClientReadyToGetMatch);
+        EventCenter.RemoveListener<MatchError>(EventType.MENU_OnClientLeaveLobbyFailed, HandleLeaveLobbyFailed);
+        EventCenter.RemoveListener(EventType.MENU_OnClientLeaveLobbySuccess, HandleLeaveLobbySuccess);
     }
 
     void Update()
@@ -151,7 +156,7 @@ public class MenuManager : RootPanel {
     private void HandleMatchmakingFailed() {
         StopWaiting();
         EventCenter.Broadcast<string, UnityAction, string, object[]>
-            (EventType.MENU_Error, "ERROR_NETWORK_CONNECTION_LOST", () => { }, "GAME_ACTION_CLOSE", null);
+            (EventType.MENU_Error, "MENU_ERROR_MATCHMAKING_FAILED", () => { }, "GAME_ACTION_CLOSE", null);
         
         if (cancelMatchmakingButton) {
             cancelMatchmakingButton.gameObject.SetActive(false);
@@ -194,6 +199,21 @@ public class MenuManager : RootPanel {
         }
        
         
+    }
+
+    private void HandleLeaveLobbySuccess() {
+        StopWaiting();
+        gamemodePanel.SetActive(true);
+    }
+
+    private void HandleLeaveLobbyFailed(MatchError error) {
+        StopWaiting();
+        if (error == MatchError.MatchAlreadyStart) {
+            SetErrorMessage("MENU_ERROR_MATCH_ALREADY_START");
+        }else if (error == MatchError.UnableToFindMatch || error == MatchError.UnableToFindPlayer) {
+            gamemodePanel.SetActive(true);
+            SetErrorMessage("MENU_ERROR_MATCH_EXIT_ERROR");
+        }
     }
     #endregion
 
@@ -259,6 +279,5 @@ public class MenuManager : RootPanel {
             cancelMatchmakingButton.gameObject.SetActive(false);
             StopWaiting();
         }
-        
     }
 }

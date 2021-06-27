@@ -44,6 +44,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     public override void OnStopServer() {
         onPlayerDisconnect?.Invoke(this);
         RpcOnServerPlayerStop(teamInfo);
+        ServerExitLobby();
         EventCenter.Broadcast(EventType.MENU_OnServerPlayerDisconnected,this);
     }
 
@@ -61,7 +62,8 @@ public class MasterServerPlayer : NetworkBehaviour {
 
             if (match.JoinPlayer(this,teamInfo)) {
                 match.teamInfoUpdate += ServerUpdateTeamInfo;
-                EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet);
+                match.onMatchStateChange += ServerUpdateMatchState;
+                TargetOnMatchReadyToGet();
                 StartCoroutine(WaitWhileGetMatch());
             }
             else {
@@ -93,6 +95,7 @@ public class MasterServerPlayer : NetworkBehaviour {
             teamInfo.matchId = match.MatchId;
             if (match.JoinPlayer(this,teamInfo)) {
                 match.teamInfoUpdate += ServerUpdateTeamInfo;
+                match.onMatchStateChange += ServerUpdateMatchState;
                 TargetOnServerGetMatch(teamInfo);
             }
             else {
@@ -116,21 +119,45 @@ public class MasterServerPlayer : NetworkBehaviour {
         TargetOnLobbyInfoUpdated(teamInfo,this.teamInfo);
     }
 
-
-    [Command]
-    private void CmdExitCurrentLobby() {
-        if (match) {
-            match.teamInfoUpdate -= ServerUpdateTeamInfo;
-            match = null;
-        }
+    [Server]
+    private void ServerUpdateMatchState(MatchState matchState) {
+        TargetOnLobbyStateUpdated(matchState);
     }
 
 
+
+    [Server]
+    private void ServerExitLobby() {
+        if (match) {
+            match.teamInfoUpdate -= ServerUpdateTeamInfo;
+            match.onMatchStateChange -= ServerUpdateMatchState;
+            match = null;
+        }
+    }
     [Command]
     private void CmdUpdatePlayfabToken(PlayfabToken token) {
         this.displayName = token.PlayerName;
         this.entityId = token.EntityId;
         this.teamInfo = new PlayerTeamInfo(token.PlayerName, -1, "");
+    }
+
+    [Command]
+    private void CmdRequestLeaveLobby() {
+        if (match == null) {
+            TargetOnLeaveLobbyFailed(MatchError.UnableToFindMatch);
+            return;
+        }
+
+        MatchError result = match.LeaveMatch(this);
+        
+        if (result == MatchError.NoError) {
+            ServerExitLobby();
+            TargetOnLeaveLobbySuccess();
+        }
+        else {
+            TargetOnLeaveLobbyFailed(result);
+        }
+
     }
 
     #endregion
@@ -355,6 +382,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     [Client]
     private void ClientOnMatchmakingError(PlayFabError error) {
         print("Client matchmaking error occurred: "+error.Error.ToString());
+
         EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed);
         if (pollTicketCoroutine != null) {
             StopCoroutine(pollTicketCoroutine);
@@ -396,6 +424,37 @@ public class MasterServerPlayer : NetworkBehaviour {
         print("Matchmaking ticket cancelled success");
     }
 
+    [TargetRpc]
+    private void TargetOnLobbyStateUpdated(MatchState state) {
+        if (hasAuthority) {
+            EventCenter.Broadcast(EventType.MENU_OnClientLobbyStateUpdated, state);
+        }
+    }
+
+    /// <summary>
+    /// Request the server to leave the current lobby
+    /// </summary>
+    [Client]
+    public void ClientRequestLeaveLobby() {
+        RunServerCommand(CmdRequestLeaveLobby);
+    }
+
+    [TargetRpc]
+    private void TargetOnLeaveLobbyFailed(MatchError error) {
+        EventCenter.Broadcast(EventType.MENU_OnClientLeaveLobbyFailed,error);
+        CancelMatchmaking();
+    }
+
+    [TargetRpc]
+    private void TargetOnLeaveLobbySuccess() {
+        EventCenter.Broadcast(EventType.MENU_OnClientLeaveLobbySuccess);
+        CancelMatchmaking();
+    }
+
+    [TargetRpc]
+    private void TargetOnMatchReadyToGet() {
+        EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet);
+    }
 
     /*
     //for future: add avatar

@@ -26,6 +26,9 @@ public enum EventType
     MENU_OnServerPlayerDisconnected,
     //MENU_OnClientPlayerDisconnected,
     //MENU_OnClientNewPlayerJoinLobby,
-    MENU_OnClientLobbyInfoUpdated
+    MENU_OnClientLobbyInfoUpdated,
+    MENU_OnClientLobbyStateUpdated,
+    MENU_OnClientLeaveLobbyFailed,
+    MENU_OnClientLeaveLobbySuccess
 
 }

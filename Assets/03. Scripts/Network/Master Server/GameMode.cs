@@ -53,7 +53,7 @@ public abstract class GameMode {
 public class QuickMode : GameMode {
     public QuickMode() {
         mode = Mode.Fast;
-        requiredPlayerNumber = 10;
+        requiredPlayerNumber = 4;
         teamNumber = 2;
         queueName = "Quick_Mode";
     }
@@ -62,7 +62,7 @@ public class QuickMode : GameMode {
 public class StandardMode : GameMode {
     public StandardMode() {
         mode = Mode.Standard;
-        requiredPlayerNumber = 10;
+        requiredPlayerNumber = 4;
         teamNumber = 2;
         queueName = "Standard_Mode";
     }
@@ -74,7 +74,7 @@ public class MarathonMode : GameMode
     public MarathonMode()
     {
         mode = Mode.Marathon;
-        requiredPlayerNumber = 10;
+        requiredPlayerNumber = 4;
         teamNumber = 2;
         queueName = "Marathon_Mode";
     }
