@@ -65,7 +65,7 @@ public class RegisterPanel : MonoBehaviour {
             Email = emailInputField.text,
             Password = passwordInputField.text
         }, result => {
-            Launcher._instance.SaveLoginToken(result.SessionTicket, result.EntityToken.Entity.Id,
+            Launcher._instance.SaveLoginToken(result.SessionTicket, result.EntityToken.Entity.Id,userNameInputField.text,
                 () => {
                     
                     EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);

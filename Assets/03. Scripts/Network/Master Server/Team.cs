@@ -100,7 +100,7 @@ public class Team {
     private bool IsSamePlayerExist(MasterServerPlayer player) {
         foreach (Faction faction in factions) {
             foreach (MasterServerPlayer existingPlayer in faction.members) {
-                if (existingPlayer.DisplayName == player.DisplayName) {
+                if (existingPlayer.TeamInfo.username== player.TeamInfo.username) {
                     return true;
                 }
             }
@@ -116,10 +116,10 @@ public class Team {
     /// <returns>Is removing success?</returns>
     public bool RemovePlayerFromTeam(PlayerTeamInfo teamInfo) {
         for (int i = 0; i < factions[teamInfo.teamId].members.Count; i++) {
-            if (factions[teamInfo.teamId].members[i].DisplayName == teamInfo.DisplayName) {
+            if (factions[teamInfo.teamId].members[i].TeamInfo.username == teamInfo.username) {
                 factions[teamInfo.teamId].members.RemoveAt(i);
                 currentPlayerNumber--;
-                RemovePlayerFromPlayerTeamInfos(teamInfo.DisplayName);
+                RemovePlayerFromPlayerTeamInfos(teamInfo.username);
                 return true;
             }
         }
@@ -135,12 +135,12 @@ public class Team {
     public bool RemovePlayerFromTeam(MasterServerPlayer player) {
         for (int i = 0; i < factions.Count; i++) {
             for (int j = 0; j < factions[i].members.Count; j++) {
-                string displayName = factions[i].members[j].DisplayName;
-                if (displayName == player.DisplayName) {
+                string username = factions[i].members[j].TeamInfo.username;
+                if (username == player.TeamInfo.username) {
                     
                     factions[i].members.RemoveAt(j);
                     currentPlayerNumber--;
-                    RemovePlayerFromPlayerTeamInfos(displayName);
+                    RemovePlayerFromPlayerTeamInfos(username);
                     return true;
                 }
             }
@@ -149,12 +149,12 @@ public class Team {
         return false;
     }
 
-    private void RemovePlayerFromPlayerTeamInfos(string displayName) {
+    private void RemovePlayerFromPlayerTeamInfos(string username) {
         for (int i = 0; i < playerTeamInfos.Count; i++)
         {
-            if (displayName == playerTeamInfos[i].DisplayName)
+            if (username == playerTeamInfos[i].username)
             {
-                Debug.Log($"Removed {displayName} from server team");
+                Debug.Log($"Removed {username} from server team");
                 playerTeamInfos.RemoveAt(i);
                 return;
             }
@@ -177,7 +177,7 @@ public class Team {
         List<List<string>> result = new List<List<string>>();
         for (int i = 0; i < factions.Count; i++) {
             for (int j = 0; j < factions[i].members.Count; j++) {
-                result[i][j] = factions[i].members[j].DisplayName;
+                result[i][j] = factions[i].members[j].TeamInfo.DisplayName;
             }
         }
 
@@ -188,7 +188,7 @@ public class Team {
         List<MasterServerPlayer> members = factions[faction].members;
         string[] names = new string[members.Count];
         for (int i = 0; i < names.Length; i++) {
-            names[i] = members[i].DisplayName;
+            names[i] = members[i].TeamInfo.DisplayName;
         }
 
         return names;
@@ -207,11 +207,13 @@ public class PlayerTeamInfo {
     public string DisplayName;
     public int teamId;
     public string matchId;
+    public string username;
 
-    public PlayerTeamInfo(string displayName, int teamId,string matchId) {
+    public PlayerTeamInfo(string displayName, int teamId,string matchId,string username) {
         this.DisplayName = displayName;
         this.teamId = teamId;
         this.matchId = matchId;
+        this.username = username;
     }
 
     public PlayerTeamInfo()
@@ -219,6 +221,7 @@ public class PlayerTeamInfo {
         this.DisplayName = "";
         this.teamId = -1;
         this.matchId = "";
+        this.username = "";
     }
     public override bool Equals(object other)
     {
@@ -227,7 +230,7 @@ public class PlayerTeamInfo {
 
         PlayerTeamInfo otherInfo = (PlayerTeamInfo)other;
 
-        if (otherInfo.DisplayName == DisplayName && otherInfo.teamId == teamId && otherInfo.matchId == matchId) {
+        if (otherInfo.username == username && otherInfo.teamId == teamId && otherInfo.matchId == matchId) {
             return true;
         }
         return false;

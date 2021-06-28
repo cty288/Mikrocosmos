@@ -74,7 +74,7 @@ public class LobbyPanel : MonoBehaviour {
 
 
         for (int i = 0; i < teamInfo.Length; i++) {
-            if (teamInfo[i].DisplayName == myInfo.DisplayName) {
+            if (teamInfo[i].username == myInfo.username) {
                 continue;
             }
 

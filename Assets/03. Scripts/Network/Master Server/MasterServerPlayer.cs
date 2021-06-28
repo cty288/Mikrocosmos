@@ -15,9 +15,6 @@ public class MasterServerPlayer : NetworkBehaviour {
 
     [SyncVar] private long lastCommandTick = 0;
 
-    [SyncVar][SerializeField]
-    private string displayName;
-    public string DisplayName => displayName;
 
     [SyncVar]
     [SerializeField]
@@ -29,6 +26,7 @@ public class MasterServerPlayer : NetworkBehaviour {
 
     [SyncVar] 
     private PlayerTeamInfo teamInfo;
+    public PlayerTeamInfo TeamInfo => teamInfo;
 
     #region Server
 
@@ -142,9 +140,8 @@ public class MasterServerPlayer : NetworkBehaviour {
     }
     [Command]
     private void CmdUpdatePlayfabToken(PlayfabToken token) {
-        this.displayName = token.PlayerName;
         this.entityId = token.EntityId;
-        this.teamInfo = new PlayerTeamInfo(token.PlayerName, -1, "");
+        this.teamInfo = new PlayerTeamInfo(token.PlayerName, -1, "",token.Username);
     }
 
     [Command]

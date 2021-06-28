@@ -29,7 +29,7 @@ public class MasterServerNetworkManager : NetworkManager {
 
     [Server]
     public void AddPlayer(MasterServerPlayer player) {
-        print($"Added {player.DisplayName} to the server player list");
+        print($"Added {player.TeamInfo.username} to the server player list");
         playersConnections.Add(player);
 
     }
@@ -37,7 +37,7 @@ public class MasterServerNetworkManager : NetworkManager {
     [Server]
     public void RemovePlayer(MasterServerPlayer player)
     {
-        print($"Removed {player.DisplayName} from the server player list");
+        print($"Removed {player.TeamInfo.DisplayName} from the server player list");
         playersConnections.Remove(player);
     }
     

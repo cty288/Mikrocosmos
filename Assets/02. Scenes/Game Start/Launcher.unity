@@ -570,10 +570,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 11783424}
-  timeAppear: 0.31
-  timeDisappear: 0.69
+  timeAppear: 0.23
+  timeDisappear: 0.77
   recycling: 0
-  sortID: 6
+  sortID: 3
   animator: {fileID: 11783427}
   animClips:
   - {fileID: 7400000, guid: 0dda14c1e1beb4847a3ba836e60cc59d, type: 2}
@@ -7630,7 +7630,7 @@ MonoBehaviour:
   timeAppear: 0.15
   timeDisappear: 0.85
   recycling: 0
-  sortID: 3
+  sortID: 2
   animator: {fileID: 299251361}
   animClips:
   - {fileID: 7400000, guid: baf288b3c6c5b544897e0acbeaa32963, type: 2}
@@ -10297,10 +10297,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 426060526}
-  timeAppear: 0.78
-  timeDisappear: 0.22000003
+  timeAppear: 0.92
+  timeDisappear: 0.07999998
   recycling: 0
-  sortID: 15
+  sortID: 12
   animator: {fileID: 426060530}
   animClips:
   - {fileID: 7400000, guid: 0119420d0ff0cde4f9916081d636f3d7, type: 2}
@@ -11107,10 +11107,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 449787122}
-  timeAppear: 0.52
-  timeDisappear: 0.48000002
+  timeAppear: 0.53
+  timeDisappear: 0.47000003
   recycling: 0
-  sortID: 10
+  sortID: 7
   animator: {fileID: 449787125}
   animClips:
   - {fileID: 7400000, guid: 0dda14c1e1beb4847a3ba836e60cc59d, type: 2}
@@ -12566,10 +12566,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 504145240}
-  timeAppear: 0.36
-  timeDisappear: 0.64
+  timeAppear: 0.3
+  timeDisappear: 0.7
   recycling: 0
-  sortID: 7
+  sortID: 4
   animator: {fileID: 504145243}
   animClips:
   - {fileID: 7400000, guid: 0dda14c1e1beb4847a3ba836e60cc59d, type: 2}
@@ -17467,10 +17467,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 721329177}
-  timeAppear: 0.73
-  timeDisappear: 0.26999998
+  timeAppear: 0.84
+  timeDisappear: 0.16000003
   recycling: 0
-  sortID: 14
+  sortID: 11
   animator: {fileID: 721329181}
   animClips:
   - {fileID: 7400000, guid: 0119420d0ff0cde4f9916081d636f3d7, type: 2}
@@ -18113,10 +18113,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 740076346}
-  timeAppear: 0.84
-  timeDisappear: 0.16000003
+  timeAppear: 1
+  timeDisappear: 0
   recycling: 0
-  sortID: 16
+  sortID: 13
   animator: {fileID: 740076350}
   animClips:
   - {fileID: 7400000, guid: 0119420d0ff0cde4f9916081d636f3d7, type: 2}
@@ -18337,10 +18337,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 743148488}
-  timeAppear: 0.1
-  timeDisappear: 0.9
+  timeAppear: 0.07
+  timeDisappear: 0.93
   recycling: 0
-  sortID: 2
+  sortID: 1
   animator: {fileID: 743148492}
   animClips:
   - {fileID: 7400000, guid: baf288b3c6c5b544897e0acbeaa32963, type: 2}
@@ -19687,10 +19687,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 798349367}
-  timeAppear: 0.57
-  timeDisappear: 0.43
+  timeAppear: 0.61
+  timeDisappear: 0.39
   recycling: 0
-  sortID: 11
+  sortID: 8
   animator: {fileID: 798349370}
   animClips:
   - {fileID: 7400000, guid: 0dda14c1e1beb4847a3ba836e60cc59d, type: 2}
@@ -31678,10 +31678,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 1348504885}
-  timeAppear: 0.42
-  timeDisappear: 0.58000004
+  timeAppear: 0.38
+  timeDisappear: 0.62
   recycling: 0
-  sortID: 8
+  sortID: 5
   animator: {fileID: 1348504888}
   animClips:
   - {fileID: 7400000, guid: 0dda14c1e1beb4847a3ba836e60cc59d, type: 2}
@@ -32723,10 +32723,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 1397226769}
-  timeAppear: 0.63
-  timeDisappear: 0.37
+  timeAppear: 0.69
+  timeDisappear: 0.31
   recycling: 0
-  sortID: 12
+  sortID: 9
   animator: {fileID: 1397226773}
   animClips:
   - {fileID: 7400000, guid: 0119420d0ff0cde4f9916081d636f3d7, type: 2}
@@ -35216,12 +35216,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   elementsList:
-  - {fileID: 0}
   - {fileID: 1847485597}
   - {fileID: 743148490}
   - {fileID: 299251359}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 11783426}
   - {fileID: 504145242}
   - {fileID: 1348504887}
@@ -35233,9 +35230,6 @@ MonoBehaviour:
   - {fileID: 721329179}
   - {fileID: 426060528}
   - {fileID: 740076348}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   autoStart: 1
   invertDelays: 1
   cloneDelays: 0
@@ -39985,10 +39979,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 1667623086}
-  timeAppear: 0.47
-  timeDisappear: 0.53
+  timeAppear: 0.46
+  timeDisappear: 0.53999996
   recycling: 0
-  sortID: 9
+  sortID: 6
   animator: {fileID: 1667623089}
   animClips:
   - {fileID: 7400000, guid: 0dda14c1e1beb4847a3ba836e60cc59d, type: 2}
@@ -43518,10 +43512,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 1847485595}
-  timeAppear: 0.05
-  timeDisappear: 0.95
+  timeAppear: 0
+  timeDisappear: 1
   recycling: 0
-  sortID: 1
+  sortID: 0
   animator: {fileID: 1847485599}
   animClips:
   - {fileID: 7400000, guid: baf288b3c6c5b544897e0acbeaa32963, type: 2}
@@ -48734,10 +48728,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectRef: {fileID: 2071082170}
-  timeAppear: 0.68
-  timeDisappear: 0.32
+  timeAppear: 0.76
+  timeDisappear: 0.24000001
   recycling: 0
-  sortID: 13
+  sortID: 10
   animator: {fileID: 2071082174}
   animClips:
   - {fileID: 7400000, guid: 0119420d0ff0cde4f9916081d636f3d7, type: 2}
@@ -50326,7 +50320,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 327338014298222092, guid: cc16d7857ad61f94595fcb69dddbb2df, type: 3}
       propertyPath: m_fontColor32.rgba
-      value: 16777215
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 1231675266986639555, guid: cc16d7857ad61f94595fcb69dddbb2df, type: 3}
       propertyPath: m_AnchorMax.x
@@ -50354,7 +50348,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2270442794580006164, guid: cc16d7857ad61f94595fcb69dddbb2df, type: 3}
       propertyPath: m_fontColor32.rgba
-      value: 15856113
+      value: 4294046193
       objectReference: {fileID: 0}
     - target: {fileID: 2896045134855611158, guid: cc16d7857ad61f94595fcb69dddbb2df, type: 3}
       propertyPath: m_Name

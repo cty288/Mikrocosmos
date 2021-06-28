@@ -20,7 +20,7 @@ public class PlayfabTokenPasser : MonoBehaviour {
     /// <param name="sessionTicket"></param>
     /// <param name="entityId"></param>
     /// <param name="playfabId"></param>
-    public void SaveToken(string sessionTicket, string entityId, string playfabId) {
+    public void SaveToken(string sessionTicket, string entityId, string playfabId,string username) {
         token.SessionTicket = sessionTicket;
         token.EntityId = entityId;
         token.PlayfabId = playfabId;
@@ -36,12 +36,13 @@ public class PlayfabTokenPasser : MonoBehaviour {
 /// </summary>
 public struct PlayfabToken {
     public string SessionTicket, EntityId, PlayfabId;
-    public string PlayerName;
+    public string PlayerName, Username;
 
-    public PlayfabToken(string SessionTicket, string EntityId,string PlayfabId, string PlayerName) {
+    public PlayfabToken(string SessionTicket, string EntityId,string PlayfabId, string PlayerName,string Username) {
         this.SessionTicket = SessionTicket;
         this.EntityId = EntityId;
         this.PlayerName = PlayerName;
         this.PlayfabId = PlayfabId;
+        this.Username = Username;
     }
 }

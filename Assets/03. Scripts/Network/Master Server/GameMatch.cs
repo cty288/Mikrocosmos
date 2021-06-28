@@ -104,10 +104,10 @@ public class GameMatch : NetworkBehaviour {
     public bool JoinPlayer(MasterServerPlayer player, PlayerTeamInfo teamInfo) { 
         bool result = team.AddPlayerToTeam(player, teamInfo);
         if (result) {
-            Debug.Log($"Added {player.DisplayName} to match {matchId}");
+            Debug.Log($"Added {player.TeamInfo.DisplayName} to match {matchId}");
         }
         else {
-            Debug.Log($"The room is full, or {player.DisplayName} already exists in match {matchId}!");
+            Debug.Log($"The room is full, or {player.TeamInfo.DisplayName} already exists in match {matchId}!");
             return false;
         }
 
@@ -161,7 +161,7 @@ public class GameMatch : NetworkBehaviour {
     private void OnPlayerDisconnect(MasterServerPlayer player) {
         team.RemovePlayerFromTeam(player);
         teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
-        print($"{player.DisplayName} exited match room {matchId}");
+        print($"{player.TeamInfo.DisplayName} exited match room {matchId}");
         playersInMatch.Remove(player);
         RemoveListener(player);
         DetectMatchRoomFull();
@@ -228,7 +228,7 @@ public class GameMatch : NetworkBehaviour {
 
         if (team.RemovePlayerFromTeam(player)) {
             teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
-            print($"{player.DisplayName} exited match room {matchId}");
+            print($"{player.TeamInfo.username} exited match room {matchId}");
             
             RemovePlayerFromPlayerList(player);
             RemoveListener(player);
@@ -251,7 +251,7 @@ public class GameMatch : NetworkBehaviour {
         }
         catch (Exception e) {
             for (int i = 0; i < playersInMatch.Count; i++) {
-                if (playersInMatch[i].DisplayName == player.DisplayName)
+                if (playersInMatch[i].TeamInfo.username == player.TeamInfo.username)
                 {
                     playersInMatch.RemoveAt(i);
                 }
