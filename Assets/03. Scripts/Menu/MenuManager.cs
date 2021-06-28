@@ -50,7 +50,7 @@ public class MenuManager : RootPanel {
         EventCenter.AddListener(EventType.MENU_OnNewUserEnterMenu, HandleOpenNewUserPanel);
         EventCenter.AddListener(EventType.MENU_OnUserEnterMenu,HandleOnUserEnterMenu);
         EventCenter.AddListener(EventType.MENU_AuthorityOnConnected,HandleOnEnterMasterServerSuccess);
-        EventCenter.AddListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
+        
         
         EventCenter.AddListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
 
@@ -76,7 +76,7 @@ public class MenuManager : RootPanel {
         EventCenter.RemoveListener<bool, bool, string>(EventType.MENU_MATCHMAKING_ClientRequestingMatchmaking,
             HandleClientRequestMatchmaking);
         EventCenter.RemoveListener(EventType.MENU_AuthorityOnConnected, HandleOnEnterMasterServerSuccess);
-        EventCenter.RemoveListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
+        
         EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed, HandleMatchmakingFailed);
         EventCenter.RemoveListener<PlayerTeamInfo>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, HandleClientRequestMatchmakingSuccess);
         EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet, HandleClientReadyToGetMatch);
@@ -136,7 +136,7 @@ public class MenuManager : RootPanel {
         OpenInfoPanel("INTERNET_CONNECTING_TO_SERVER", true);
         //MIRROR_OnMirrorConnectSuccess and MIRROR_OnMirrorConnectTimeout will be triggered
         //connect to server using NetworkConnector
-        NetworkConnector._singleton.ConnectToServer(ServerInfo.ServerIp,ServerInfo.MasterServerPort);
+        NetworkConnector._singleton.ConnectToServer(ServerInfo.ServerIp,ServerInfo.MasterServerPort,HandleOnEnterMasterServerFailed);
     }
 
     private void HandleOnEnterMasterServerSuccess() {

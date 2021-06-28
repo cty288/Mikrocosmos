@@ -40,7 +40,7 @@ public class GameMatch : NetworkBehaviour {
     public Action<PlayerTeamInfo[]> teamInfoUpdate;
     //public Action<int> countdownUpdate;
     public Action<float> countdownUpdate;
-    public Action<MatchState> onMatchStateChange;
+    public Action<MatchState,GameMatch> onMatchStateChange;
 
    
     private float countDown = 10f;
@@ -208,7 +208,7 @@ public class GameMatch : NetworkBehaviour {
             if (matchState!=MatchState.GameAlreadyStart) {
                 yield return new WaitForSeconds(1.5f);
                 teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
-                onMatchStateChange?.Invoke(this.matchState);
+                onMatchStateChange?.Invoke(this.matchState,this);
             }
 
         }
@@ -272,7 +272,7 @@ public class GameMatch : NetworkBehaviour {
 
             }else if (matchState == MatchState.StartingGameProcess) {
                 //TODO: kick all players back to lobby; stop process
-                onMatchStateChange?.Invoke(matchState);
+                onMatchStateChange?.Invoke(matchState,this);
             }
         }
     }
@@ -281,7 +281,7 @@ public class GameMatch : NetworkBehaviour {
     private void UpdateServerMatchState(MatchState newState) {
         if (matchState != newState) {
             matchState = newState;
-            onMatchStateChange?.Invoke(newState);
+            onMatchStateChange?.Invoke(newState,this);
 
             //waiting for player and countdown are processed in the Update Method
             switch (newState) {
@@ -293,6 +293,12 @@ public class GameMatch : NetworkBehaviour {
                     //Ready to start game - invoke event and start the process
                     ServerStartGameProcess();
                     EventCenter.Broadcast(EventType.MENU_OnServerMatchStartingProcess,this);
+                    break;
+                case MatchState.GameAlreadyStart:
+                   
+                    break;
+                case MatchState.MatchSpawnFailed:
+
                     break;
             }
         }
@@ -312,10 +318,12 @@ public class GameMatch : NetworkBehaviour {
                                           true;
         if (gameProcess.Start()) {
             Debug.Log("Spawning: " + gameProcess.StartInfo.FileName + "; args=" + gameProcess.StartInfo.Arguments);
+            UpdateServerMatchState(MatchState.GameAlreadyStart);
             return true;
         }
         else {
             //TODO: Destroy the process and the gamematch itself
+            UpdateServerMatchState(MatchState.MatchSpawnFailed);
             return false;
         }
     }

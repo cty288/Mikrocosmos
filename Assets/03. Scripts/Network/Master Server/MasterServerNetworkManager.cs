@@ -29,7 +29,7 @@ public class MasterServerNetworkManager : NetworkManager {
 
     [Server]
     public void AddPlayer(MasterServerPlayer player) {
-        print($"Added {player.TeamInfo.username} to the server player list");
+        print($"Added {player.TeamInfo.DisplayName} to the server player list");
         playersConnections.Add(player);
 
     }

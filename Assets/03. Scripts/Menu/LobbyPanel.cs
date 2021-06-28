@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Mirror;
 using Polyglot;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class LobbyPanel : MonoBehaviour {
@@ -50,13 +51,13 @@ public class LobbyPanel : MonoBehaviour {
 
     private void AddLobbyPanelChildListeners() {
         EventCenter.AddListener<PlayerTeamInfo[],PlayerTeamInfo>(EventType.MENU_OnClientLobbyInfoUpdated,DisplayPlayerToLobby);
-        EventCenter.AddListener<MatchState>(EventType.MENU_OnClientLobbyStateUpdated,HandleLobbyStateUpdate);
+        EventCenter.AddListener<MatchState,string,ushort,Mode>(EventType.MENU_OnClientLobbyStateUpdated,HandleLobbyStateUpdate);
         EventCenter.AddListener<float>(EventType.MENU_OnClientLobbyCountdownUpdated,HandleOnCountdownUpdate);
     }
 
     private void RemoveLobbyPanelChildListeners() {
         EventCenter.RemoveListener<PlayerTeamInfo[], PlayerTeamInfo>(EventType.MENU_OnClientLobbyInfoUpdated, DisplayPlayerToLobby);
-        EventCenter.RemoveListener<MatchState>(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
+        EventCenter.RemoveListener<MatchState,string,ushort,Mode>(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
         EventCenter.RemoveListener<float>(EventType.MENU_OnClientLobbyCountdownUpdated, HandleOnCountdownUpdate);
     }
 
@@ -125,7 +126,7 @@ public class LobbyPanel : MonoBehaviour {
         }
     }
 
-    private void HandleLobbyStateUpdate(MatchState matchState) {
+    private void HandleLobbyStateUpdate(MatchState matchState,string ip, ushort port,Mode gamemode) {
         switch (matchState) {
             case MatchState.WaitingForPlayers:
                 SetLeaveLobbyButton(true,true);
@@ -143,8 +144,17 @@ public class LobbyPanel : MonoBehaviour {
             case MatchState.GameAlreadyStart:
                 SetLeaveLobbyButton(false,false);
                 StopCountDown();
+                PlayerPrefs.SetString("ip",ip);
+                PlayerPrefs.SetInt("port",port);
+                SceneManager.LoadSceneAsync(ServerInfo.GameModeSceneName[(int) gamemode]);
+                break;
+            case MatchState.MatchSpawnFailed:
                 break;
         }
+    }
+
+    private void OnJoinGameServerFailed() {
+
     }
 
     private void StartCountDown() {

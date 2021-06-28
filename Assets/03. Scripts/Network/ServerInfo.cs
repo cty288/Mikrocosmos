@@ -16,6 +16,10 @@ public static class ServerInfo {
         @"D:\programming\Mikrocosmos 2\GameServer"  //marathon
     };
 
-
+    public static string[] GameModeSceneName = new[] {
+        "StandardMode",
+        "StandardMode",
+        "StandardMode"
+    };
     public static string ProcessName = "Mikrocosmos 2.exe";
 }

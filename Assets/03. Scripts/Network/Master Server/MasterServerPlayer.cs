@@ -28,15 +28,13 @@ public class MasterServerPlayer : NetworkBehaviour {
     private PlayerTeamInfo teamInfo;
     public PlayerTeamInfo TeamInfo => teamInfo;
 
+
     #region Server
 
 
     //only server player saves this
     private GameMatch match;
 
-    public override void OnStartServer() {
-        EventCenter.Broadcast(EventType.MENU_OnServerPlayerAdded,this);
-    }
 
     public Action<MasterServerPlayer> onPlayerDisconnect;
     public override void OnStopServer() {
@@ -120,8 +118,8 @@ public class MasterServerPlayer : NetworkBehaviour {
     }
 
     [Server]
-    private void ServerUpdateMatchState(MatchState matchState) {
-        TargetOnLobbyStateUpdated(matchState);
+    private void ServerUpdateMatchState(MatchState matchState,GameMatch match) {
+        TargetOnLobbyStateUpdated(matchState,match.Ip,match.Port);
     }
 
     private void ServerUpdateMatchCountdown(float countDown) {
@@ -142,6 +140,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     private void CmdUpdatePlayfabToken(PlayfabToken token) {
         this.entityId = token.EntityId;
         this.teamInfo = new PlayerTeamInfo(token.PlayerName, -1, "",token.Username);
+        EventCenter.Broadcast(EventType.MENU_OnServerPlayerAdded, this);
     }
 
     [Command]
@@ -428,9 +427,9 @@ public class MasterServerPlayer : NetworkBehaviour {
     }
 
     [TargetRpc]
-    private void TargetOnLobbyStateUpdated(MatchState state) {
+    private void TargetOnLobbyStateUpdated(MatchState state, string ip,ushort port) {
         if (hasAuthority) {
-            EventCenter.Broadcast(EventType.MENU_OnClientLobbyStateUpdated, state);
+            EventCenter.Broadcast(EventType.MENU_OnClientLobbyStateUpdated, state,ip,port,requestingMode);
         }
     }
 

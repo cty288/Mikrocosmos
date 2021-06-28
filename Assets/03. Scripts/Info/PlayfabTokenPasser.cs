@@ -24,6 +24,7 @@ public class PlayfabTokenPasser : MonoBehaviour {
         token.SessionTicket = sessionTicket;
         token.EntityId = entityId;
         token.PlayfabId = playfabId;
+        token.Username = username;
     }
 
     public void SavePlayerName(string playerName) {
