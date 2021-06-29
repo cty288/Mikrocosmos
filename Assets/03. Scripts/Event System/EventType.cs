@@ -31,6 +31,15 @@ public enum EventType
     MENU_OnClientLobbyCountdownUpdated,
 
     MENU_OnServerMatchStartingProcess,
-    MENU_OnServerProcessStartSuccess
+    MENU_OnServerProcessStartSuccess,
+
+
+    GAME_OnClientConnectingToServer,
+    GAME_OnClientConnectingToServerFailed,
+    GAME_OnClientConnectingToServerSuccess,
+    GAME_OnClientAuthenticated,
+
+    GAME_ServerOnPlayerConnected,
+    GAME_ServerOnPlayerDisconnected
 
 }

@@ -124,7 +124,14 @@ public class LoginPanel : MonoBehaviour {
         Launcher._instance.CloseInfoPanel();
 
         print(error.ErrorMessage);
-        EventCenter.Broadcast<string>(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_FAILED");
+        if (error.Error == PlayFabErrorCode.InvalidUsernameOrPassword) {
+            EventCenter.Broadcast<string>(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_FAILED_PWD");
+        }
+        else
+        {
+            EventCenter.Broadcast<string>(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_NETWORK");
+        }
+ 
     }
 
 

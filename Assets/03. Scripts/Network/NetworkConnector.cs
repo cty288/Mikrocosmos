@@ -31,16 +31,17 @@ public class NetworkConnector : MonoBehaviour {
     /// <param name="checkInterval">The time interval of each check during timeout</param>
     /// <param name="timeout">Timeout time</param>
     /// <returns></returns>
-    public void ConnectToServer(string address, ushort port, Action onConectFailed=null, float minimumWaitTime=1.5f,float checkInterval=2f,
+    public void ConnectToServer(string address, ushort port, Action onConnecting=null, Action onConectFailed=null, float minimumWaitTime=1.5f,float checkInterval=2f,
         float timeout=10f) {
         StartCoroutine(NetworkConnector.GetOrCreate(gameObject).Connect(address, port,minimumWaitTime,
-            checkInterval,timeout, onConectFailed));
+            checkInterval,timeout, onConnecting,onConectFailed));
     }
 
 
 
     private IEnumerator Connect(string address, ushort port,float minimumWaitTime=1.5f, float checkInterval=2f,
-        float timeout=10f,Action onConnectFailed=null) {
+        float timeout=10f,Action onConnecting=null, Action onConnectFailed=null) {
+        onConnecting?.Invoke();
         yield return new WaitForSeconds(minimumWaitTime);
         
         NetworkManager.singleton.StopClient();

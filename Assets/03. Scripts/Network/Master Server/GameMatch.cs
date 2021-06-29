@@ -314,8 +314,22 @@ public class GameMatch : NetworkBehaviour {
 
         gameProcess.StartInfo.Arguments = ip + " " +
                                           port + " " +
-                                          matchId+" "+
-                                          true;
+                                          matchId + " " +
+                                          team.TotalPlayerNumber+" ";
+
+        for (int i = 0; i < playersInMatch.Count; i++) {
+            gameProcess.StartInfo.Arguments += playersInMatch[i].TeamInfo.username + " ";
+        }
+
+        for (int i = 0; i < PlayersInMatch.Count; i++) {
+            gameProcess.StartInfo.Arguments += playersInMatch[i].TeamInfo.teamId + " ";
+        }
+
+        for (int i = 0; i < PlayersInMatch.Count; i++)
+        {
+            gameProcess.StartInfo.Arguments += playersInMatch[i].TeamInfo.DisplayName + " ";
+        }
+
         if (gameProcess.Start()) {
             Debug.Log("Spawning: " + gameProcess.StartInfo.FileName + "; args=" + gameProcess.StartInfo.Arguments);
             UpdateServerMatchState(MatchState.GameAlreadyStart);

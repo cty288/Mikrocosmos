@@ -5,28 +5,14 @@ using Mirror;
 using UnityEngine;
 
 public class MasterServerNetworkManager : NetworkManager {
+
+
     private List<MasterServerPlayer> playersConnections;
 
     private MatchManager matchManager;
     public MatchManager MatchManager => matchManager;
 
     #region Server
-    /*
-    [Server]
-    public override void OnServerAddPlayer(NetworkConnection conn)
-    {
-        base.OnServerAddPlayer(conn);
-
-        //players.Add(conn.identity.GetComponent<MasterServerPlayer>());
-        StartCoroutine(Wait(conn.identity.GetComponent<MasterServerPlayer>()));
-    }
-
-    IEnumerator Wait(MasterServerPlayer conn) {
-        yield return new WaitForSeconds(0.5f);
-        print($"Added {conn.DisplayName} to the server player list");
-        playersConnections.Add(conn);
-    }*/
-
     [Server]
     public void AddPlayer(MasterServerPlayer player) {
         print($"Added {player.TeamInfo.DisplayName} to the server player list");

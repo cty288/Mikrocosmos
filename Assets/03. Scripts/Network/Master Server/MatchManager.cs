@@ -37,6 +37,8 @@ public class MatchManager : NetworkBehaviour {
     /// <returns></returns>
     [ServerCallback]
     public GameMatch FindAvailableMatch(GameMode gamemode) {
+        unStartedMatchList = ShuffleMatch(unStartedMatchList);
+
         foreach (GameMatch match in unStartedMatchList) {
             if (match.Gamemode.getGameMode() == gamemode.getGameMode()) {
                 if (match.GetCurrentPlayerNumber() < match.GetRequiredPlayerNumber()) {
@@ -45,6 +47,26 @@ public class MatchManager : NetworkBehaviour {
             }
         }
         return null;
+    }
+
+    [ServerCallback]
+    public List<GameMatch> ShuffleMatch(List<GameMatch> original)
+    {
+        System.Random randomNum = new System.Random();
+        int index = 0;
+        GameMatch temp;
+
+        for (int i = 0; i < original.Count; i++)
+        {
+            index = randomNum.Next(0, original.Count - 1);
+            if (index != i)
+            {
+                temp = original[i];
+                original[i] = original[index];
+                original[index] = temp;
+            }
+        }
+        return original;
     }
 
     /// <summary>
