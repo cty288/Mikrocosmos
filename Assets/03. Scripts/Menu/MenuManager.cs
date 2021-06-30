@@ -67,6 +67,7 @@ public class MenuManager : RootPanel {
         EventCenter.AddListener(EventType.MENU_OnClientLeaveLobbySuccess,HandleLeaveLobbySuccess);
 
         EventCenter.AddListener<MatchState, string, ushort, Mode>(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
+        EventCenter.AddListener(EventType.MENU_OnClientReceiveServerStartingProcessFailed, HanleOnClientReceiveServerStartingProcessFailed);
     }
 
     private void OnDestroyRemoveListeners()
@@ -85,6 +86,7 @@ public class MenuManager : RootPanel {
         EventCenter.RemoveListener<MatchError>(EventType.MENU_OnClientLeaveLobbyFailed, HandleLeaveLobbyFailed);
         EventCenter.RemoveListener(EventType.MENU_OnClientLeaveLobbySuccess, HandleLeaveLobbySuccess);
         EventCenter.RemoveListener<MatchState, string, ushort, Mode>(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
+        EventCenter.RemoveListener(EventType.MENU_OnClientReceiveServerStartingProcessFailed, HanleOnClientReceiveServerStartingProcessFailed);
     }
 
     private void HandleLobbyStateUpdate(MatchState matchState, string ip, ushort port, Mode mode) {
@@ -220,6 +222,12 @@ public class MenuManager : RootPanel {
             SetErrorMessage("MENU_ERROR_MATCH_EXIT_ERROR");
         }
     }
+
+    private void HanleOnClientReceiveServerStartingProcessFailed(){
+        StopWaiting();
+        gamemodePanel.SetActive(true);
+        SetErrorMessage("MENU_SERVER_START_MATCH_FAILED");
+    }
     #endregion
 
 
@@ -285,4 +293,6 @@ public class MenuManager : RootPanel {
             StopWaiting();
         }
     }
+
+
 }

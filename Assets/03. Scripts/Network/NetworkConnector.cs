@@ -14,9 +14,15 @@ public class NetworkConnector : MonoBehaviour {
 
     
     
-    void Awake() {
-        _singleton = this;
-        DontDestroyOnLoad(this.gameObject);
+    private void Awake() {
+        if (NetworkConnector._singleton != null) {
+            Destroy(this.gameObject);
+        }
+        else {
+            _singleton = this;
+            DontDestroyOnLoad(this.gameObject);
+        }
+
     }
 
    
@@ -62,6 +68,7 @@ public class NetworkConnector : MonoBehaviour {
 
             if (CheckConnected() && NetworkManager.singleton.networkAddress == ipAddress
                                  && NetworkManager.singleton.GetComponent<TelepathyTransport>().port == port) {
+                print($"Successfully connected to the server {ipAddress} port {port}");
                 break;
             }
 

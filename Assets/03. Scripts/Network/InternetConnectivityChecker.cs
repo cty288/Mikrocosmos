@@ -23,8 +23,14 @@ public class InternetConnectivityChecker : MonoBehaviour {
     private float checkingTimeInterval = 1f;
 
     private float timer = 0;
-    void Awake() {
-        _instance = this;
+    void Awake(){ 
+        if (InternetConnectivityChecker._instance != null) {
+            Destroy(this.gameObject);
+        }
+        else {
+            _instance = this;
+        }
+        
     }
 
     // Update is called once per frame

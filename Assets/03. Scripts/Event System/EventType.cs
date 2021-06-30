@@ -31,7 +31,7 @@ public enum EventType
     MENU_OnClientLobbyCountdownUpdated,
 
     MENU_OnServerMatchStartingProcess,
-    MENU_OnServerProcessStartSuccess,
+    MENU_OnClientReceiveServerStartingProcessFailed,
 
 
     GAME_OnClientConnectingToServer,
@@ -40,6 +40,7 @@ public enum EventType
     GAME_OnClientAuthenticated,
 
     GAME_ServerOnPlayerConnected,
-    GAME_ServerOnPlayerDisconnected
+    GAME_ServerOnPlayerDisconnected,
+    GAME_OnMatchExited,
 
 }
