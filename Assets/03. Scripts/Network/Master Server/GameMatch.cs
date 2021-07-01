@@ -295,26 +295,12 @@ public class GameMatch : NetworkBehaviour {
                     EventCenter.Broadcast(EventType.MENU_OnServerMatchStartingProcess,this);
                     break;
                 case MatchState.GameAlreadyStart:
-                    //start monitoring if the game has ended
-                    StartCoroutine(CheckProcessHelth());
+                   
                     break;
                 case MatchState.MatchSpawnFailed:
 
                     break;
             }
-        }
-    }
-
-    [ServerCallback]
-    private IEnumerator CheckProcessHelth() {
-        while (true) {
-            if (gameProcess.HasExited) {
-                Debug.Log($"Game match {matchId} has exited");
-                gameProcess = null;
-                EventCenter.Broadcast(EventType.GAME_OnMatchExited,this);
-                break;
-            }
-            yield return new WaitForSeconds(5f);
         }
     }
 

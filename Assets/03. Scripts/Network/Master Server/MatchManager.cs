@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Mirror;
@@ -26,16 +25,11 @@ public class MatchManager : NetworkBehaviour {
     [ServerCallback]
     private void Start() {
         EventCenter.AddListener<GameMatch>(EventType.MENU_OnServerMatchStartingProcess,HandleOnMatchStartingProcess);
-        EventCenter.AddListener<GameMatch>(EventType.GAME_OnMatchExited,HandleOnMatchExited);
     }
 
     private void OnDestroy() {
         EventCenter.RemoveListener<GameMatch>(EventType.MENU_OnServerMatchStartingProcess, HandleOnMatchStartingProcess);
-        EventCenter.RemoveListener<GameMatch>(EventType.GAME_OnMatchExited, HandleOnMatchExited);
     }
-
-
-
     /// <summary>
     /// Return an available game match
     /// </summary>
@@ -54,7 +48,6 @@ public class MatchManager : NetworkBehaviour {
         }
         return null;
     }
-
 
     [ServerCallback]
     public List<GameMatch> ShuffleMatch(List<GameMatch> original)
@@ -119,7 +112,7 @@ public class MatchManager : NetworkBehaviour {
     [ServerCallback]
     private GameMatch FindMatchRoomByMatchId(string matchId) {
         foreach (GameMatch match in unStartedMatchList) {
-            if (match != null && match.MatchId == matchId) {
+            if (match.MatchId == matchId) {
                 return match;
             }
         }
@@ -142,9 +135,8 @@ public class MatchManager : NetworkBehaviour {
     }
 
     private bool CheckPortDuplicate(ulong port) {
-        foreach (GameMatch match in startedMatchList) {
-            if (match != null && port == match.Port)
-            {
+        for (int i = 0; i < startedMatchList.Count; i++) {
+            if (port == startedMatchList[i].Port) {
                 return true;
             }
         }
@@ -154,18 +146,5 @@ public class MatchManager : NetworkBehaviour {
     private void HandleOnMatchStartingProcess(GameMatch match) {
         unStartedMatchList.Remove(match);
         startedMatchList.Add(match);
-    }
-
-    private void HandleOnMatchExited(GameMatch match) {
-        if (startedMatchList.Contains(match)) {
-            startedMatchList.Remove(match);
-            Destroy(match.gameObject);
-            Debug.Log($"Match {match.MatchId} has exited. It is destroyed from the MatchManager");
-        }
-        else {
-            Debug.Log($"Match {match.MatchId} has exited, but we couldn't locate it in MatchManager," +
-                      $"while its gameobject has been destroyed");
-            Destroy(match.gameObject);
-        }
     }
 }

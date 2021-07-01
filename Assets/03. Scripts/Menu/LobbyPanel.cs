@@ -149,16 +149,12 @@ public class LobbyPanel : MonoBehaviour {
                 SceneManager.LoadSceneAsync(ServerInfo.GameModeSceneName[(int) gamemode]);
                 break;
             case MatchState.MatchSpawnFailed:
-                OnJoinGameServerFailed();
                 break;
         }
     }
 
     private void OnJoinGameServerFailed() {
-        EventCenter.Broadcast(EventType.MENU_OnClientReceiveServerStartingProcessFailed);
-        if (lobbyPanel) {
-            lobbyPanel.gameObject.SetActive(false);
-        }
+
     }
 
     private void StartCountDown() {
