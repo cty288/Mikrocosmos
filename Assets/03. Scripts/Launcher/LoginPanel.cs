@@ -81,7 +81,7 @@ public class LoginPanel : MonoBehaviour {
 
 
             PlayfabUtilities.GetUsername(username => {
-                PlayerPrefs.SetString("Username",username);
+                PlayerPrefs.SetString("Username_saved",username);
                 EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
             }, error => {
                 EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
@@ -90,7 +90,7 @@ public class LoginPanel : MonoBehaviour {
         }
         else {
             PlayerPrefs.SetInt("Remember_Account", 0);
-            PlayerPrefs.SetString("Username","");
+            PlayerPrefs.SetString("Username_saved", "");
             PlayerPrefs.SetString("Password","");
             EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
         }
@@ -104,7 +104,7 @@ public class LoginPanel : MonoBehaviour {
     private void InitializeInputFieldAndAutoLogin() {
         if (PlayerPrefs.GetInt("Remember_Account", 0) == 1) { //remember account
             rememberAccountToggle.isOn = true;
-            usernameInputField.text = PlayerPrefs.GetString("Username");
+            usernameInputField.text = PlayerPrefs.GetString("Username_saved");
             passwordInputField.text = PlayerPrefs.GetString("Password");
         }
         else {
@@ -124,7 +124,14 @@ public class LoginPanel : MonoBehaviour {
         Launcher._instance.CloseInfoPanel();
 
         print(error.ErrorMessage);
-        EventCenter.Broadcast<string>(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_FAILED");
+        if (error.Error == PlayFabErrorCode.InvalidUsernameOrPassword) {
+            EventCenter.Broadcast<string>(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_FAILED_PWD");
+        }
+        else
+        {
+            EventCenter.Broadcast<string>(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_NETWORK");
+        }
+ 
     }
 
 

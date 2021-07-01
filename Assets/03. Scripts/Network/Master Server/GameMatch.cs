@@ -40,7 +40,7 @@ public class GameMatch : NetworkBehaviour {
     public Action<PlayerTeamInfo[]> teamInfoUpdate;
     //public Action<int> countdownUpdate;
     public Action<float> countdownUpdate;
-    public Action<MatchState> onMatchStateChange;
+    public Action<MatchState,GameMatch> onMatchStateChange;
 
    
     private float countDown = 10f;
@@ -104,10 +104,10 @@ public class GameMatch : NetworkBehaviour {
     public bool JoinPlayer(MasterServerPlayer player, PlayerTeamInfo teamInfo) { 
         bool result = team.AddPlayerToTeam(player, teamInfo);
         if (result) {
-            Debug.Log($"Added {player.DisplayName} to match {matchId}");
+            Debug.Log($"Added {player.TeamInfo.DisplayName} to match {matchId}");
         }
         else {
-            Debug.Log($"The room is full, or {player.DisplayName} already exists in match {matchId}!");
+            Debug.Log($"The room is full, or {player.TeamInfo.DisplayName} already exists in match {matchId}!");
             return false;
         }
 
@@ -161,7 +161,7 @@ public class GameMatch : NetworkBehaviour {
     private void OnPlayerDisconnect(MasterServerPlayer player) {
         team.RemovePlayerFromTeam(player);
         teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
-        print($"{player.DisplayName} exited match room {matchId}");
+        print($"{player.TeamInfo.DisplayName} exited match room {matchId}");
         playersInMatch.Remove(player);
         RemoveListener(player);
         DetectMatchRoomFull();
@@ -208,7 +208,7 @@ public class GameMatch : NetworkBehaviour {
             if (matchState!=MatchState.GameAlreadyStart) {
                 yield return new WaitForSeconds(1.5f);
                 teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
-                onMatchStateChange?.Invoke(this.matchState);
+                onMatchStateChange?.Invoke(this.matchState,this);
             }
 
         }
@@ -228,7 +228,7 @@ public class GameMatch : NetworkBehaviour {
 
         if (team.RemovePlayerFromTeam(player)) {
             teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
-            print($"{player.DisplayName} exited match room {matchId}");
+            print($"{player.TeamInfo.username} exited match room {matchId}");
             
             RemovePlayerFromPlayerList(player);
             RemoveListener(player);
@@ -251,7 +251,7 @@ public class GameMatch : NetworkBehaviour {
         }
         catch (Exception e) {
             for (int i = 0; i < playersInMatch.Count; i++) {
-                if (playersInMatch[i].DisplayName == player.DisplayName)
+                if (playersInMatch[i].TeamInfo.username == player.TeamInfo.username)
                 {
                     playersInMatch.RemoveAt(i);
                 }
@@ -272,7 +272,7 @@ public class GameMatch : NetworkBehaviour {
 
             }else if (matchState == MatchState.StartingGameProcess) {
                 //TODO: kick all players back to lobby; stop process
-                onMatchStateChange?.Invoke(matchState);
+                onMatchStateChange?.Invoke(matchState,this);
             }
         }
     }
@@ -281,7 +281,7 @@ public class GameMatch : NetworkBehaviour {
     private void UpdateServerMatchState(MatchState newState) {
         if (matchState != newState) {
             matchState = newState;
-            onMatchStateChange?.Invoke(newState);
+            onMatchStateChange?.Invoke(newState,this);
 
             //waiting for player and countdown are processed in the Update Method
             switch (newState) {
@@ -294,7 +294,27 @@ public class GameMatch : NetworkBehaviour {
                     ServerStartGameProcess();
                     EventCenter.Broadcast(EventType.MENU_OnServerMatchStartingProcess,this);
                     break;
+                case MatchState.GameAlreadyStart:
+                    //start monitoring if the game has ended
+                    StartCoroutine(CheckProcessHelth());
+                    break;
+                case MatchState.MatchSpawnFailed:
+
+                    break;
             }
+        }
+    }
+
+    [ServerCallback]
+    private IEnumerator CheckProcessHelth() {
+        while (true) {
+            if (gameProcess.HasExited) {
+                Debug.Log($"Game match {matchId} has exited");
+                gameProcess = null;
+                EventCenter.Broadcast(EventType.GAME_OnMatchExited,this);
+                break;
+            }
+            yield return new WaitForSeconds(5f);
         }
     }
 
@@ -308,14 +328,30 @@ public class GameMatch : NetworkBehaviour {
 
         gameProcess.StartInfo.Arguments = ip + " " +
                                           port + " " +
-                                          matchId+" "+
-                                          true;
+                                          matchId + " " +
+                                          team.TotalPlayerNumber+" ";
+
+        for (int i = 0; i < playersInMatch.Count; i++) {
+            gameProcess.StartInfo.Arguments += playersInMatch[i].TeamInfo.username + " ";
+        }
+
+        for (int i = 0; i < PlayersInMatch.Count; i++) {
+            gameProcess.StartInfo.Arguments += playersInMatch[i].TeamInfo.teamId + " ";
+        }
+
+        for (int i = 0; i < PlayersInMatch.Count; i++)
+        {
+            gameProcess.StartInfo.Arguments += playersInMatch[i].TeamInfo.DisplayName + " ";
+        }
+
         if (gameProcess.Start()) {
             Debug.Log("Spawning: " + gameProcess.StartInfo.FileName + "; args=" + gameProcess.StartInfo.Arguments);
+            UpdateServerMatchState(MatchState.GameAlreadyStart);
             return true;
         }
         else {
             //TODO: Destroy the process and the gamematch itself
+            UpdateServerMatchState(MatchState.MatchSpawnFailed);
             return false;
         }
     }

@@ -80,6 +80,10 @@ public static class PlayfabUtilities
         });
     }
 
+    public static string GetUsernameFromPlayPrefs() {
+        return PlayerPrefs.GetString("Username");
+    }
+
     /// <summary>
     /// Get Player name. Must be called after login/register and successfully setup a display name
     /// </summary>

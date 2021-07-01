@@ -50,7 +50,7 @@ public class MenuManager : RootPanel {
         EventCenter.AddListener(EventType.MENU_OnNewUserEnterMenu, HandleOpenNewUserPanel);
         EventCenter.AddListener(EventType.MENU_OnUserEnterMenu,HandleOnUserEnterMenu);
         EventCenter.AddListener(EventType.MENU_AuthorityOnConnected,HandleOnEnterMasterServerSuccess);
-        EventCenter.AddListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
+        
         
         EventCenter.AddListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
 
@@ -65,6 +65,9 @@ public class MenuManager : RootPanel {
 
         EventCenter.AddListener<MatchError>(EventType.MENU_OnClientLeaveLobbyFailed,HandleLeaveLobbyFailed);
         EventCenter.AddListener(EventType.MENU_OnClientLeaveLobbySuccess,HandleLeaveLobbySuccess);
+
+        EventCenter.AddListener<MatchState, string, ushort, Mode>(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
+        EventCenter.AddListener(EventType.MENU_OnClientReceiveServerStartingProcessFailed, HanleOnClientReceiveServerStartingProcessFailed);
     }
 
     private void OnDestroyRemoveListeners()
@@ -76,17 +79,20 @@ public class MenuManager : RootPanel {
         EventCenter.RemoveListener<bool, bool, string>(EventType.MENU_MATCHMAKING_ClientRequestingMatchmaking,
             HandleClientRequestMatchmaking);
         EventCenter.RemoveListener(EventType.MENU_AuthorityOnConnected, HandleOnEnterMasterServerSuccess);
-        EventCenter.RemoveListener(EventType.MIRROR_OnMirrorConnectTimeout, HandleOnEnterMasterServerFailed);
+        
         EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed, HandleMatchmakingFailed);
         EventCenter.RemoveListener<PlayerTeamInfo>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, HandleClientRequestMatchmakingSuccess);
         EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet, HandleClientReadyToGetMatch);
         EventCenter.RemoveListener<MatchError>(EventType.MENU_OnClientLeaveLobbyFailed, HandleLeaveLobbyFailed);
         EventCenter.RemoveListener(EventType.MENU_OnClientLeaveLobbySuccess, HandleLeaveLobbySuccess);
+        EventCenter.RemoveListener<MatchState, string, ushort, Mode>(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
+        EventCenter.RemoveListener(EventType.MENU_OnClientReceiveServerStartingProcessFailed, HanleOnClientReceiveServerStartingProcessFailed);
     }
 
-    void Update()
-    {
-        
+    private void HandleLobbyStateUpdate(MatchState matchState, string ip, ushort port, Mode mode) {
+        if (matchState == MatchState.GameAlreadyStart) {
+            StartWaiting(true,true, "MENU_ENTER_GAME_LOADING");
+        }
     }
 
     private void CheckFirstTimeUser(){
@@ -98,6 +104,7 @@ public class MenuManager : RootPanel {
             StopWaiting();
             if (result.PlayerProfile.DisplayName == null) {
                 EventCenter.Broadcast(EventType.MENU_OnNewUserEnterMenu);
+
             }else {
                 PlayfabTokenPasser._instance.SavePlayerName(result.PlayerProfile.DisplayName);
                 EventCenter.Broadcast(EventType.MENU_OnUserEnterMenu);
@@ -136,7 +143,7 @@ public class MenuManager : RootPanel {
         OpenInfoPanel("INTERNET_CONNECTING_TO_SERVER", true);
         //MIRROR_OnMirrorConnectSuccess and MIRROR_OnMirrorConnectTimeout will be triggered
         //connect to server using NetworkConnector
-        NetworkConnector._singleton.ConnectToServer(ServerInfo.ServerIp,ServerInfo.MasterServerPort);
+        NetworkConnector._singleton.ConnectToServer(ServerInfo.ServerIp,ServerInfo.MasterServerPort,null,HandleOnEnterMasterServerFailed);
     }
 
     private void HandleOnEnterMasterServerSuccess() {
@@ -215,6 +222,12 @@ public class MenuManager : RootPanel {
             SetErrorMessage("MENU_ERROR_MATCH_EXIT_ERROR");
         }
     }
+
+    private void HanleOnClientReceiveServerStartingProcessFailed(){
+        StopWaiting();
+        gamemodePanel.SetActive(true);
+        SetErrorMessage("MENU_SERVER_START_MATCH_FAILED");
+    }
     #endregion
 
 
@@ -280,4 +293,6 @@ public class MenuManager : RootPanel {
             StopWaiting();
         }
     }
+
+
 }

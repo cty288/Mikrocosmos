@@ -15,9 +15,6 @@ public class MasterServerPlayer : NetworkBehaviour {
 
     [SyncVar] private long lastCommandTick = 0;
 
-    [SyncVar][SerializeField]
-    private string displayName;
-    public string DisplayName => displayName;
 
     [SyncVar]
     [SerializeField]
@@ -29,6 +26,8 @@ public class MasterServerPlayer : NetworkBehaviour {
 
     [SyncVar] 
     private PlayerTeamInfo teamInfo;
+    public PlayerTeamInfo TeamInfo => teamInfo;
+
 
     #region Server
 
@@ -36,9 +35,6 @@ public class MasterServerPlayer : NetworkBehaviour {
     //only server player saves this
     private GameMatch match;
 
-    public override void OnStartServer() {
-        EventCenter.Broadcast(EventType.MENU_OnServerPlayerAdded,this);
-    }
 
     public Action<MasterServerPlayer> onPlayerDisconnect;
     public override void OnStopServer() {
@@ -122,8 +118,8 @@ public class MasterServerPlayer : NetworkBehaviour {
     }
 
     [Server]
-    private void ServerUpdateMatchState(MatchState matchState) {
-        TargetOnLobbyStateUpdated(matchState);
+    private void ServerUpdateMatchState(MatchState matchState,GameMatch match) {
+        TargetOnLobbyStateUpdated(matchState,match.Ip,match.Port);
     }
 
     private void ServerUpdateMatchCountdown(float countDown) {
@@ -142,9 +138,9 @@ public class MasterServerPlayer : NetworkBehaviour {
     }
     [Command]
     private void CmdUpdatePlayfabToken(PlayfabToken token) {
-        this.displayName = token.PlayerName;
         this.entityId = token.EntityId;
-        this.teamInfo = new PlayerTeamInfo(token.PlayerName, -1, "");
+        this.teamInfo = new PlayerTeamInfo(token.PlayerName, -1, "",token.Username);
+        EventCenter.Broadcast(EventType.MENU_OnServerPlayerAdded, this);
     }
 
     [Command]
@@ -431,9 +427,9 @@ public class MasterServerPlayer : NetworkBehaviour {
     }
 
     [TargetRpc]
-    private void TargetOnLobbyStateUpdated(MatchState state) {
+    private void TargetOnLobbyStateUpdated(MatchState state, string ip,ushort port) {
         if (hasAuthority) {
-            EventCenter.Broadcast(EventType.MENU_OnClientLobbyStateUpdated, state);
+            EventCenter.Broadcast(EventType.MENU_OnClientLobbyStateUpdated, state,ip,port,requestingMode);
         }
     }
 

@@ -12,7 +12,6 @@ public enum EventType
     INTERNET_OnInternetLostConnection,
     INTERNET_OnInternetConnectionRecover,
     
-    MIRROR_OnMirrorConnectTimeout,
     MENU_AuthorityOnConnected,
     MENU_OnNewUserEnterMenu,
     MENU_OnUserEnterMenu,
@@ -31,6 +30,17 @@ public enum EventType
     MENU_OnClientLeaveLobbySuccess,
     MENU_OnClientLobbyCountdownUpdated,
 
-    MENU_OnServerMatchStartingProcess
+    MENU_OnServerMatchStartingProcess,
+    MENU_OnClientReceiveServerStartingProcessFailed,
+
+
+    GAME_OnClientConnectingToServer,
+    GAME_OnClientConnectingToServerFailed,
+    GAME_OnClientConnectingToServerSuccess,
+    GAME_OnClientAuthenticated,
+
+    GAME_ServerOnPlayerConnected,
+    GAME_ServerOnPlayerDisconnected,
+    GAME_OnMatchExited,
 
 }

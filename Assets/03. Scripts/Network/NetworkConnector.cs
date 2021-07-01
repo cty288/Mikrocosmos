@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Mirror;
@@ -9,24 +10,22 @@ public class NetworkConnector : MonoBehaviour {
     private string ipAddress = "127.0.0.1";
     private ushort port = 0;
 
-    private float mirrorServerConnectionTimeout=10f;
-    private bool startDetectServerConnect = false;
+
 
     
     
-    void Awake() {
-        _singleton = this;
-    }
-
-    void Update() {
-        if (startDetectServerConnect) {
-            if (CheckConnected() && NetworkManager.singleton.networkAddress==ipAddress
-            && NetworkManager.singleton.GetComponent<TelepathyTransport>().port == port) {
-                StopAllCoroutines();
-                startDetectServerConnect = false;
-            }
+    private void Awake() {
+        if (NetworkConnector._singleton != null) {
+            Destroy(this.gameObject);
         }
+        else {
+            _singleton = this;
+            DontDestroyOnLoad(this.gameObject);
+        }
+
     }
+
+   
 
     /// <summary>
     /// Connect to a Mirror server with an address and port. MIRROR_OnMirrorConnectSuccess and MIRROR_OnMirrorConnectTimeout
@@ -35,30 +34,49 @@ public class NetworkConnector : MonoBehaviour {
     /// <param name="address"></param>
     /// <param name="port">Master Server: 7777; other servers: 7778+. Check ServerInfo class for more information</param>
     /// <param name="minimumWaitTime">The minimum amount of time (in seconds) the user needs to wait before connecting. The default value is 1.5</param>
+    /// <param name="checkInterval">The time interval of each check during timeout</param>
+    /// <param name="timeout">Timeout time</param>
     /// <returns></returns>
-    public void ConnectToServer(string address, ushort port, float minimumWaitTime=1.5f) {
-        StartCoroutine(NetworkConnector.GetOrCreate(gameObject).Connect(address, port,minimumWaitTime));
+    public void ConnectToServer(string address, ushort port, Action onConnecting=null, Action onConectFailed=null, float minimumWaitTime=1.5f,float checkInterval=2f,
+        float timeout=10f) {
+        StartCoroutine(NetworkConnector.GetOrCreate(gameObject).Connect(address, port,minimumWaitTime,
+            checkInterval,timeout, onConnecting,onConectFailed));
     }
 
 
 
-    private IEnumerator Connect(string address, ushort port,float minimumWaitTime=1.5f) {
+    private IEnumerator Connect(string address, ushort port,float minimumWaitTime=1.5f, float checkInterval=2f,
+        float timeout=10f,Action onConnecting=null, Action onConnectFailed=null) {
+        onConnecting?.Invoke();
         yield return new WaitForSeconds(minimumWaitTime);
-
-       NetworkManager.singleton.StopClient();
+        
+        NetworkManager.singleton.StopClient();
        yield return new WaitForSeconds(0.5f);
         
         NetworkManager.singleton.networkAddress = address;
         NetworkManager.singleton.GetComponent<TelepathyTransport>().port = port;
         this.ipAddress = address;
         this.port = port;
-        NetworkManager.singleton.StartClient();
-        startDetectServerConnect = true;
 
-        yield return new WaitForSeconds(mirrorServerConnectionTimeout);
-        startDetectServerConnect = false;
+        int totalCheckTime =Mathf.RoundToInt(timeout / checkInterval);
+        int checkTime = 0;
+
+        while (checkTime < totalCheckTime) {
+            NetworkManager.singleton.StartClient();
+
+            yield return new WaitForSeconds(checkInterval);
+
+            if (CheckConnected() && NetworkManager.singleton.networkAddress == ipAddress
+                                 && NetworkManager.singleton.GetComponent<TelepathyTransport>().port == port) {
+                print($"Successfully connected to the server {ipAddress} port {port}");
+                break;
+            }
+
+            checkTime++;
+        }
+
         if (!NetworkClient.isConnected) { 
-            EventCenter.Broadcast(EventType.MIRROR_OnMirrorConnectTimeout);
+            onConnectFailed?.Invoke();
         }
         
     }
