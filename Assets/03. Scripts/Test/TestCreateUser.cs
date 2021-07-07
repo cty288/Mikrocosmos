@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using MikrocosmosDatabase;
 using UnityEngine;
-
+/*
 public class TestCreateUser : MonoBehaviour {
     public string username;
     public int id;
@@ -37,4 +37,4 @@ public class TestCreateUser : MonoBehaviour {
         IList<User> results= manager.SearchByFieldNames(fieldNames, values);
         Debug.Log($"found id {results[0].Id}");
     }
-}
+}*/

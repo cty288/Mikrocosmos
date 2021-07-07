@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -32,18 +33,29 @@ public class ServerDatabaseManager : MonoBehaviour {
     /// <summary>
     /// Authenticate the PlayFabToken in the database. Create a new data in the database if it's a new user
     /// Return true if authenticate success, false if authenticate failed
+    /// This method will run asynchronously
     /// </summary>
     /// <param name="token"></param>
+    /// <param name="onAuthenticateSuccess">Event triggered after authenticate success</param>
+    /// <param name="onAuthenticateFailed">Event triggered after authenticate failed</param>
     /// <returns></returns>
-    public bool AuthenticatePlayfabToken(PlayfabToken token) {
-         User userResult= userTableManager.AuthenticateUsernamePlayfabid(token.Username, token.PlayfabId, token.Password);
-        if (userResult != null) {
+    public async void AuthenticatePlayfabToken(PlayfabToken token,Action onAuthenticateSuccess,Action onAuthenticateFailed) {
+         User userResult= await userTableManager.AuthenticateUsernamePlayfabid(token.Username, token.PlayfabId, token.Password);
+         bool result;
+         //await Task.Delay(2000);
+         if (userResult != null) {
             Debug.Log($"{token.Username} authenticate success on the database! Authenticating display name...");
-            return  playerTableManager.AuthenticateDisplayName(userResult, token.PlayerName);
+            result = await playerTableManager.AuthenticateDisplayName(userResult, token.PlayerName);
+         }else {
+            Debug.Log($"{token.Username} authenticate failed on the database!");
+            result = false;
+         }
+
+        if (result) {
+            onAuthenticateSuccess?.Invoke();
         }
         else {
-            Debug.Log($"{token.Username} authenticate failed on the database!");
-            return false;
+            onAuthenticateFailed?.Invoke();
         }
     }
 }

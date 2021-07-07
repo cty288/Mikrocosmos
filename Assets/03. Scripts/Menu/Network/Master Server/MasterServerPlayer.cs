@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using MikrocosmosDatabase;
 using Mirror;
 using PlayFab;
@@ -140,27 +141,22 @@ public class MasterServerPlayer : NetworkBehaviour {
         }
     }
     [Command]
-    private void CmdUpdatePlayfabToken(PlayfabToken token) {
-        bool databaseAuthenticateResult = AuthenticatePlayfabToken(token);
-        if (databaseAuthenticateResult) {
+    private void CmdAuthenticatePlayfabToken(PlayfabToken token) {
+        ServerDatabaseManager.Singleton.AuthenticatePlayfabToken(token, () => {
             Debug.Log($"{token.Username} authenticate success on the database!");
             this.entityId = token.EntityId;
             this.teamInfo = new PlayerTeamInfo(token.PlayerName, -1, "", token.Username);
             EventCenter.Broadcast(EventType.MENU_OnServerPlayerAdded, this);
-        }
-        else {
+            TargetOnAuthenticateSuccess();
+        }, () => {
             Debug.Log($"{token.Username} authenticate failed on the database!");
             OnStopServer();
             TargetKicked();
-        }
+        });
 
+        Debug.Log($"[Test] Updating playfab token: {token.Username}");
     }
 
-    [Server]
-    private bool AuthenticatePlayfabToken(PlayfabToken token) {
-        
-        return ServerDatabaseManager.Singleton.AuthenticatePlayfabToken(token);
-    }
 
     [Command]
     private void CmdRequestLeaveLobby() {
@@ -239,12 +235,18 @@ public class MasterServerPlayer : NetworkBehaviour {
     }
 
     public override void OnStartAuthority() {
+        //改一下，等到身份验证成功才显示主菜单
         base.OnStartAuthority();
-        EventCenter.Broadcast(EventType.MENU_AuthorityOnConnected);
         EventCenter.AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingCancelled,CancelMatchmaking);
         if (PlayfabTokenPasser._instance) {
-            CmdUpdatePlayfabToken(PlayfabTokenPasser._instance.Token);
+            CmdAuthenticatePlayfabToken(PlayfabTokenPasser._instance.Token);
         }
+       
+    }
+
+    [TargetRpc]
+    private void TargetOnAuthenticateSuccess() {
+        EventCenter.Broadcast(EventType.MENU_AuthorityOnConnected);
     }
 
     public override void OnStopAuthority() {
@@ -409,7 +411,7 @@ public class MasterServerPlayer : NetworkBehaviour {
             StopCoroutine(pollTicketCoroutine);
             pollTicketCoroutine = null;
         }
-
+        
         CancelMatchmaking();
     }
 
