@@ -67,6 +67,8 @@ public class MenuManager : RootPanel {
         EventCenter.AddListener(EventType.MENU_OnClientLeaveLobbySuccess,HandleLeaveLobbySuccess);
 
         EventCenter.AddListener<MatchState, string, ushort, Mode>(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
+        EventCenter.AddListener(EventType.MENU_OnAuthenticaeteFailed,HandleOnAuthenticateFailed);
+        EventCenter.AddListener(EventType.MENU_OnClientReceiveServerStartingProcessFailed, HanleOnClientReceiveServerStartingProcessFailed);
     }
 
     private void OnDestroyRemoveListeners()
@@ -85,8 +87,22 @@ public class MenuManager : RootPanel {
         EventCenter.RemoveListener<MatchError>(EventType.MENU_OnClientLeaveLobbyFailed, HandleLeaveLobbyFailed);
         EventCenter.RemoveListener(EventType.MENU_OnClientLeaveLobbySuccess, HandleLeaveLobbySuccess);
         EventCenter.RemoveListener<MatchState, string, ushort, Mode>(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
+        EventCenter.RemoveListener(EventType.MENU_OnAuthenticaeteFailed, HandleOnAuthenticateFailed);
+        EventCenter.RemoveListener(EventType.MENU_OnClientReceiveServerStartingProcessFailed, HanleOnClientReceiveServerStartingProcessFailed);
     }
 
+    private void HandleOnAuthenticateFailed()
+    {
+        SetErrorMessage("MENU_AUTHENTICATE_FAILED",()=> {
+            Application.Quit();}, "MENU_LABEL_EXIT");
+    }
+
+    private void HanleOnClientReceiveServerStartingProcessFailed()
+    {
+        StopWaiting();
+        gamemodePanel.SetActive(true);
+        SetErrorMessage("MENU_SERVER_START_MATCH_FAILED");
+    }
     private void HandleLobbyStateUpdate(MatchState matchState, string ip, ushort port, Mode mode) {
         if (matchState == MatchState.GameAlreadyStart) {
             StartWaiting(true,true, "MENU_ENTER_GAME_LOADING");

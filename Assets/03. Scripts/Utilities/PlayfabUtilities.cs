@@ -23,7 +23,7 @@ public static class PlayfabUtilities
         {
             SessionTicket = sessionTicket
         }, result => {
-            Debug.Log("got");
+            Debug.Log("got playfabid: "+result.UserInfo.PlayFabId);
             returned_result = result.UserInfo.PlayFabId;
 
             PlayerPrefs.SetString("Playfab_Id", returned_result);

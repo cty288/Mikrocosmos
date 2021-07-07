@@ -77,7 +77,7 @@ public class LoginPanel : MonoBehaviour {
 
         if (rememberAccountToggle.isOn) {
             PlayerPrefs.SetInt("Remember_Account",1);
-            PlayerPrefs.SetString("Password", passwordInputField.text);
+            PlayerPrefs.SetString("Password_saved", passwordInputField.text);
 
 
             PlayfabUtilities.GetUsername(username => {
@@ -91,7 +91,7 @@ public class LoginPanel : MonoBehaviour {
         else {
             PlayerPrefs.SetInt("Remember_Account", 0);
             PlayerPrefs.SetString("Username_saved", "");
-            PlayerPrefs.SetString("Password","");
+            PlayerPrefs.SetString("Password_saved","");
             EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
         }
 
@@ -105,7 +105,7 @@ public class LoginPanel : MonoBehaviour {
         if (PlayerPrefs.GetInt("Remember_Account", 0) == 1) { //remember account
             rememberAccountToggle.isOn = true;
             usernameInputField.text = PlayerPrefs.GetString("Username_saved");
-            passwordInputField.text = PlayerPrefs.GetString("Password");
+            passwordInputField.text = PlayerPrefs.GetString("Password_saved");
         }
         else {
             rememberAccountToggle.isOn = false;

@@ -16,6 +16,10 @@ public class GameBaseNetworkManager : NetworkManager {
     private List<GamePlayer> existingPlayers;
     private List<PlayerTeamInfo> matchPlayerInfos;
 
+    [Tooltip("The game process will periodically check the number of players. " +
+             "It will self-destroy if there's no players in the game. ")]
+    [SerializeField] private float inactiveSelfDestroyTime = 30f;
+
     private void ServerSetup() {
 #if UNITY_SERVER
             string[] args = Environment.GetCommandLineArgs();
@@ -73,16 +77,25 @@ public class GameBaseNetworkManager : NetworkManager {
         ServerSetup();
     }
 
-
+    public int GetExistingPlayerNumber()
+    {
+        return NetworkManager.singleton.numPlayers;
+    }
     #region Server
+    /// <summary>
+    /// Add a bunch of listeners...
+    /// </summary>
     [ServerCallback]
     public override void OnStartServer() {
         base.OnStartServer();
         existingPlayers = new List<GamePlayer>();
         EventCenter.AddListener<GamePlayer>(EventType.GAME_ServerOnPlayerConnected, AuthenticatePlayer);
         EventCenter.AddListener<GamePlayer>(EventType.GAME_ServerOnPlayerDisconnected, RemovePlayer);
+        StartCoroutine(StartMonitoringPlayerNum());
     }
-
+    /// <summary>
+    /// remove listeners when the server stops
+    /// </summary>
     public override void OnStopServer() {
         base.OnStopServer();
         EventCenter.RemoveListener<GamePlayer>(EventType.GAME_ServerOnPlayerConnected, AuthenticatePlayer);
@@ -90,7 +103,31 @@ public class GameBaseNetworkManager : NetworkManager {
     }
 
     [ServerCallback]
+    private IEnumerator StartMonitoringPlayerNum()
+    {
+        yield return new WaitForSeconds(60);
+        StartCoroutine(SelfDestroyAfterInactive());
+    }
+
+    [ServerCallback]
+    private IEnumerator SelfDestroyAfterInactive()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(inactiveSelfDestroyTime);
+            if (GetExistingPlayerNumber() <= 0)
+            {
+                NetworkManager.singleton.StopServer();
+                Debug.Log($"Match {matchId} is self-destroyed because all players have left the room");
+                Application.Quit();
+            }
+        }
+    }
+
+
+    [ServerCallback]
     private void RemovePlayer(GamePlayer player) {
+        //check if the player exists in the matchPlayerInfos first
         PlayerTeamInfo playerTeamInfo = FindPlayerTeamInfo(player);
         if (playerTeamInfo != null) {
             matchPlayerInfos.Remove(playerTeamInfo);
@@ -98,6 +135,12 @@ public class GameBaseNetworkManager : NetworkManager {
         }
     }
 
+    /// <summary>
+    /// Find the player's corresponding PlayerTeamInfo object based on GamePlayer object
+    /// It will return something only if the player has been authenticated
+    /// </summary>
+    /// <param name="player"></param>
+    /// <returns></returns>
     [ServerCallback]
     private PlayerTeamInfo FindPlayerTeamInfo(GamePlayer player) {
         foreach (PlayerTeamInfo playerInfo in matchPlayerInfos) {
@@ -108,7 +151,10 @@ public class GameBaseNetworkManager : NetworkManager {
 
         return null;
     }
-
+    /// <summary>
+    /// Authenticate the player. Make sure the joined player has a record in "matchPlayerInfos"
+    /// </summary>
+    /// <param name="player"></param>
     [ServerCallback]
     private void AuthenticatePlayer(GamePlayer player) {
         PlayerTeamInfo playerInfo = FindPlayerTeamInfo(player);
@@ -134,7 +180,7 @@ public class GameBaseNetworkManager : NetworkManager {
 
 
     #region Client
-    [Client]
+
     private void OnJoinGameServerFailed()
     {
         Debug.Log("Join server failed");

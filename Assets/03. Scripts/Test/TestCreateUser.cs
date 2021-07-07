@@ -12,15 +12,14 @@ public class TestCreateUser : MonoBehaviour {
     private UserTableManager manager;
     void Start() {
         manager = new UserTableManager();
-        NHibernateHelper.filePath = Application.streamingAssetsPath;
     }
     public void OnCreateUserButtonClicked() {
-        User user = new User() {Email = email, Username = username, Password = password, LastLoginTime = DateTime.Now};
+        User user = new User() { Username = username, Password = password, LastLoginTime = DateTime.Now};
         manager.Add(user);
     }
 
     public void OnDeleteUserButtonClicked() {
-        User user = new User() {Id = id};
+        User user = new User() {Id = id,Username = " ",Password = " "};
         manager.Remove(user);
     }
 

@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using MikrocosmosDatabase;
 using Mirror;
 using PlayFab;
 using PlayFab.ClientModels;
@@ -34,6 +36,7 @@ public class MasterServerPlayer : NetworkBehaviour {
 
     //only server player saves this
     private GameMatch match;
+
 
 
     public Action<MasterServerPlayer> onPlayerDisconnect;
@@ -113,7 +116,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     }*/
 
     private void ServerUpdateTeamInfo(PlayerTeamInfo[] teamInfo) {
-        print("Server updating team info "+teamInfo.Length);
+        //print("Server updating team info "+teamInfo.Length);
         TargetOnLobbyInfoUpdated(teamInfo,this.teamInfo);
     }
 
@@ -138,9 +141,25 @@ public class MasterServerPlayer : NetworkBehaviour {
     }
     [Command]
     private void CmdUpdatePlayfabToken(PlayfabToken token) {
-        this.entityId = token.EntityId;
-        this.teamInfo = new PlayerTeamInfo(token.PlayerName, -1, "",token.Username);
-        EventCenter.Broadcast(EventType.MENU_OnServerPlayerAdded, this);
+        bool databaseAuthenticateResult = AuthenticatePlayfabToken(token);
+        if (databaseAuthenticateResult) {
+            Debug.Log($"{token.Username} authenticate success on the database!");
+            this.entityId = token.EntityId;
+            this.teamInfo = new PlayerTeamInfo(token.PlayerName, -1, "", token.Username);
+            EventCenter.Broadcast(EventType.MENU_OnServerPlayerAdded, this);
+        }
+        else {
+            Debug.Log($"{token.Username} authenticate failed on the database!");
+            OnStopServer();
+            TargetKicked();
+        }
+
+    }
+
+    [Server]
+    private bool AuthenticatePlayfabToken(PlayfabToken token) {
+        
+        return ServerDatabaseManager.Singleton.AuthenticatePlayfabToken(token);
     }
 
     [Command]
@@ -461,6 +480,12 @@ public class MasterServerPlayer : NetworkBehaviour {
     [TargetRpc]
     private void TargetUpdateCountDown(float countdown) {
         EventCenter.Broadcast(EventType.MENU_OnClientLobbyCountdownUpdated,countdown);
+    }
+
+    [TargetRpc]
+    private void TargetKicked() {
+        EventCenter.Broadcast(EventType.MENU_OnAuthenticaeteFailed);
+        NetworkManager.singleton.StopClient();
     }
 
 

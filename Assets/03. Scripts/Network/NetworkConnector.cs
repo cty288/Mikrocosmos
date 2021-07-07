@@ -11,27 +11,29 @@ public class NetworkConnector : MonoBehaviour {
     private ushort port = 0;
 
 
-
-    
-    
-    void Awake() {
-        _singleton = this;
-        DontDestroyOnLoad(this.gameObject);
+    private void Awake() {
+        if (NetworkConnector._singleton != null) {
+            Destroy(this.gameObject);
+        }
+        else {
+            _singleton = this;
+            DontDestroyOnLoad(this.gameObject);
+        }
     }
 
-   
+
 
     /// <summary>
-    /// Connect to a Mirror server with an address and port. MIRROR_OnMirrorConnectSuccess and MIRROR_OnMirrorConnectTimeout
-    /// are thrown when successfully connect to the target server or time out
-    /// </summary>
-    /// <param name="address"></param>
-    /// <param name="port">Master Server: 7777; other servers: 7778+. Check ServerInfo class for more information</param>
-    /// <param name="minimumWaitTime">The minimum amount of time (in seconds) the user needs to wait before connecting. The default value is 1.5</param>
-    /// <param name="checkInterval">The time interval of each check during timeout</param>
-    /// <param name="timeout">Timeout time</param>
-    /// <returns></returns>
-    public void ConnectToServer(string address, ushort port, Action onConnecting=null, Action onConectFailed=null, float minimumWaitTime=1.5f,float checkInterval=2f,
+        /// Connect to a Mirror server with an address and port. MIRROR_OnMirrorConnectSuccess and MIRROR_OnMirrorConnectTimeout
+        /// are thrown when successfully connect to the target server or time out
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="port">Master Server: 7777; other servers: 7778+. Check ServerInfo class for more information</param>
+        /// <param name="minimumWaitTime">The minimum amount of time (in seconds) the user needs to wait before connecting. The default value is 1.5</param>
+        /// <param name="checkInterval">The time interval of each check during timeout</param>
+        /// <param name="timeout">Timeout time</param>
+        /// <returns></returns>
+        public void ConnectToServer(string address, ushort port, Action onConnecting=null, Action onConectFailed=null, float minimumWaitTime=1.5f,float checkInterval=2f,
         float timeout=10f) {
         StartCoroutine(NetworkConnector.GetOrCreate(gameObject).Connect(address, port,minimumWaitTime,
             checkInterval,timeout, onConnecting,onConectFailed));
@@ -62,6 +64,7 @@ public class NetworkConnector : MonoBehaviour {
 
             if (CheckConnected() && NetworkManager.singleton.networkAddress == ipAddress
                                  && NetworkManager.singleton.GetComponent<TelepathyTransport>().port == port) {
+                print($"Successfully connected to the server {ipAddress} port {port}");
                 break;
             }
 

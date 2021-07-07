@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MikrocosmosDatabase;
 using Mirror;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ public class MasterServerNetworkManager : NetworkManager {
 
     private MatchManager matchManager;
     public MatchManager MatchManager => matchManager;
+
 
     #region Server
     [Server]
@@ -23,8 +25,11 @@ public class MasterServerNetworkManager : NetworkManager {
     [Server]
     public void RemovePlayer(MasterServerPlayer player)
     {
-        print($"Removed {player.TeamInfo.DisplayName} from the server player list");
-        playersConnections.Remove(player);
+        if (player) {
+            print($"Removed {player.TeamInfo.DisplayName} from the server player list");
+            playersConnections.Remove(player);
+        }
+
     }
     
     /*
@@ -62,6 +67,8 @@ public class MasterServerNetworkManager : NetworkManager {
     [Server]
     private void InitializeServerOnlyObjs() {
         matchManager= MirrorServerUtilities.SpawnServerOnlyObject<MatchManager>("Match Manager").GetComponent<MatchManager>();
+        MirrorServerUtilities.SpawnServerOnlyObject<NHibernateHelper>("Nihbernate Helper");
+        MirrorServerUtilities.SpawnServerOnlyObject<ServerDatabaseManager>("Database Manager");
     }
 
     

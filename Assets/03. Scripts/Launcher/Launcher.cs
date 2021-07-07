@@ -113,11 +113,13 @@ public class Launcher : RootPanel {
     /// </summary>
     /// <param name="sessionTicket"></param>
     /// <param name="entityId"></param>
-    public void SaveLoginToken(string sessionTicket, string entityId, string username,Action onSaveSuccess,Action onSaveFailed) {
+    public void SaveLoginToken(string sessionTicket, string entityId, string username,string pwd, Action onSaveSuccess,Action onSaveFailed) {
         PlayerPrefs.SetString("Session_Ticket", sessionTicket);
         PlayerPrefs.SetString("Entity_Id", entityId);
         PlayerPrefs.SetString("Username",username);
+        PlayerPrefs.SetString("Password", pwd);
         PlayfabUtilities.SetPlayfabIdFromSessionTicket(sessionTicket, onSaveSuccess, onSaveFailed);
+        Debug.Log($"Player {username} loginned. Entity id: {entityId}");
     }
 
 
@@ -136,7 +138,7 @@ public class Launcher : RootPanel {
             Password = pwd
         }, result => {
             if (!loginCancelled) {
-                SaveLoginToken(result.SessionTicket, result.EntityToken.Entity.Id, username,
+                SaveLoginToken(result.SessionTicket, result.EntityToken.Entity.Id, username,pwd,
                     () => {
                         EventCenter.Broadcast(EventType.LAUNCHER_OnPlayFabLoginSuccess);
                         infoPanel.DisableCloseButton();
@@ -160,7 +162,8 @@ public class Launcher : RootPanel {
     {
         PlayfabTokenPasser._instance.SaveToken(PlayerPrefs.GetString("Session_Ticket"),
             PlayerPrefs.GetString("Entity_Id"),
-            PlayfabUtilities.GetPlayFabIdFromPlayerPrefs(),PlayfabUtilities.GetUsernameFromPlayPrefs());
+            PlayfabUtilities.GetPlayFabIdFromPlayerPrefs(),PlayfabUtilities.GetUsernameFromPlayPrefs(),
+            PlayerPrefs.GetString("Password"));
         CloseInfoPanel();
         SceneManager.LoadSceneAsync("Menu");
     }
