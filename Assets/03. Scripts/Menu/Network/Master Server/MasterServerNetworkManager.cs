@@ -17,7 +17,7 @@ public class MasterServerNetworkManager : NetworkManager {
     #region Server
     [Server]
     public void AddPlayer(MasterServerPlayer player) {
-        print($"Added {player.TeamInfo.DisplayName} to the server player list");
+        print($"[MasterServerNetworkManager] Added {player.TeamInfo.DisplayName} to the server player list");
         playersConnections.Add(player);
 
     }
@@ -26,7 +26,7 @@ public class MasterServerNetworkManager : NetworkManager {
     public void RemovePlayer(MasterServerPlayer player)
     {
         if (player) {
-            print($"Removed {player.TeamInfo.DisplayName} from the server player list");
+            print($"[MasterServerNetworkManager] Removed {player.TeamInfo.DisplayName} from the server player list");
             playersConnections.Remove(player);
         }
 
@@ -48,7 +48,7 @@ public class MasterServerNetworkManager : NetworkManager {
     {
         base.OnStartServer();
         playersConnections = new List<MasterServerPlayer>();
-        Debug.Log("Server start!");
+        Debug.Log("[MasterServerNetworkManager] Server start!");
         InitializeServerOnlyObjs();
         EventCenter.AddListener<MasterServerPlayer>(EventType.MENU_OnServerPlayerAdded,AddPlayer);
         EventCenter.AddListener<MasterServerPlayer>(EventType.MENU_OnServerPlayerDisconnected, RemovePlayer);
@@ -75,7 +75,6 @@ public class MasterServerNetworkManager : NetworkManager {
     public GameMatch ServerRequestFindAvailableMatch(Mode gamemode) {
         if (matchManager && NetworkServer.active) {
             GameMatch match= matchManager.FindAvailableMatch(GameMode.GetGameModeObj(gamemode));
-            Debug.Log("Find the MatchManager");
             if (match != null) {
                 return match;
             }

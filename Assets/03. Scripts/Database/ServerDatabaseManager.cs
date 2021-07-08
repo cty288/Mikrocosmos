@@ -44,10 +44,10 @@ public class ServerDatabaseManager : MonoBehaviour {
          bool result;
          //await Task.Delay(2000);
          if (userResult != null) {
-            Debug.Log($"{token.Username} authenticate success on the database! Authenticating display name...");
+            Debug.Log($"[ServerDatabaseManager] {token.Username} authenticate success on the database! Authenticating display name...");
             result = await playerTableManager.AuthenticateDisplayName(userResult, token.PlayerName);
          }else {
-            Debug.Log($"{token.Username} authenticate failed on the database!");
+            Debug.Log($"[ServerDatabaseManager] {token.Username} authenticate failed on the database!");
             result = false;
          }
 
@@ -58,4 +58,23 @@ public class ServerDatabaseManager : MonoBehaviour {
             onAuthenticateFailed?.Invoke();
         }
     }
+
+
+    public async void AddMatchIdToDatabase(PlayerTeamInfo teamInfo, string matchId) {
+        string displayName = teamInfo.DisplayName;
+        Player searchedPlayer = await playerTableManager.SearchByDisplayName(displayName);
+
+        if (searchedPlayer != null) {
+            searchedPlayer.JoinedMatchid = matchId;
+
+            bool result = await playerTableManager.Update(searchedPlayer);
+
+            if (result) 
+                Debug.Log($"[ServerDatabaseManager] Successfully updated {matchId} to {displayName}'s data on the database!");
+            }else {
+                Debug.Log($"[ServerDatabaseManager] Failed to update {matchId} to {displayName}'s data on the database!");
+        }
+    }
+       
 }
+

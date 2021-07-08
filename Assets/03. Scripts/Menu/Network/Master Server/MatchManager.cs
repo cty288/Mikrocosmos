@@ -86,7 +86,7 @@ public class MatchManager : NetworkBehaviour {
             result.SetGamemode(gamemode,matchId,currentPort);
             UpdatePort();
             unStartedMatchList.Add(result);
-            Debug.Log($"Successfully created match room. ID: {matchId}");
+            Debug.Log($"[MatchManager] Successfully created match room. ID: {matchId}");
             return result;
         }
         else {
@@ -158,11 +158,11 @@ public class MatchManager : NetworkBehaviour {
         {
             startedMatchList.Remove(match);
             Destroy(match.gameObject);
-            Debug.Log($"Match {match.MatchId} has exited. It is destroyed from the MatchManager");
+            Debug.Log($"[MatchManager] Match {match.MatchId} has exited. It is destroyed from the MatchManager");
         }
         else
         {
-            Debug.Log($"Match {match.MatchId} has exited, but we couldn't locate it in MatchManager," +
+            Debug.Log($"[MatchManager] Match {match.MatchId} has exited, but we couldn't locate it in MatchManager," +
                       $"while its gameobject has been destroyed");
             Destroy(match.gameObject);
         }

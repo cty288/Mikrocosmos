@@ -124,6 +124,10 @@ public class MasterServerPlayer : NetworkBehaviour {
     [Server]
     private void ServerUpdateMatchState(MatchState matchState,GameMatch match) {
         TargetOnLobbyStateUpdated(matchState,match.Ip,match.Port);
+
+        if (matchState == MatchState.StartingGameProcess || matchState == MatchState.GameAlreadyStart) {
+            ServerDatabaseManager.Singleton.AddMatchIdToDatabase(teamInfo,match.MatchId);
+        }
     }
 
     private void ServerUpdateMatchCountdown(float countDown) {
@@ -143,18 +147,17 @@ public class MasterServerPlayer : NetworkBehaviour {
     [Command]
     private void CmdAuthenticatePlayfabToken(PlayfabToken token) {
         ServerDatabaseManager.Singleton.AuthenticatePlayfabToken(token, () => {
-            Debug.Log($"{token.Username} authenticate success on the database!");
+            Debug.Log($"[MasterServerPlayer - {token.PlayerName}]: {token.Username} authenticate success on the database!");
             this.entityId = token.EntityId;
             this.teamInfo = new PlayerTeamInfo(token.PlayerName, -1, "", token.Username);
             EventCenter.Broadcast(EventType.MENU_OnServerPlayerAdded, this);
             TargetOnAuthenticateSuccess();
         }, () => {
-            Debug.Log($"{token.Username} authenticate failed on the database!");
+            Debug.Log($"[MasterServerPlayer - {token.PlayerName}]:{token.Username} authenticate failed on the database!");
             OnStopServer();
             TargetKicked();
         });
 
-        Debug.Log($"[Test] Updating playfab token: {token.Username}");
     }
 
 
@@ -293,7 +296,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     private IEnumerator StartPlayFabMatchmaking(NetworkConnection target) {
         pollTicketCancelled = false;
         yield return new WaitForSeconds(0.5f);
-        print($"Requesting PlayFab matchmaking, queue name: {GameMode.GetGameModeObj(requestingMode).GetQueueName()}" +
+        print($"[MasterServerPlayer - {teamInfo.DisplayName}]: Requesting PlayFab matchmaking, queue name: {GameMode.GetGameModeObj(requestingMode).GetQueueName()}" +
               $"Entity id: {entityId}");
         
         PlayFabMultiplayerAPI.CreateMatchmakingTicket(new CreateMatchmakingTicketRequest
@@ -322,7 +325,7 @@ public class MasterServerPlayer : NetworkBehaviour {
 
     [Client]
     private void ClientOnMatchmakingTicketCreated(CreateMatchmakingTicketResult result) {
-        print("Client matchmaking ticket created");
+        print($"[MasterServerPlayer - {teamInfo.DisplayName}]: Client matchmaking ticket created");
         this.ticketId = result.TicketId;
         pollTicketCoroutine = StartCoroutine(ClientPollTicket());
     }
@@ -332,7 +335,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     private IEnumerator ClientPollTicket()
     {
         
-        print("polling ticket, ticket id: "+this.ticketId);
+        print($"[MasterServerPlayer - {teamInfo.DisplayName}]: polling ticket, ticket id: " + this.ticketId);
 
         while (!pollTicketCancelled)
         {
@@ -350,7 +353,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     private void OnGetMatchmakingTicket(GetMatchmakingTicketResult result)
     {
         if (!pollTicketCancelled) {
-            print("Polling a ticket. Result: " + result.Status);
+            print($"[MasterServerPlayer - {teamInfo.DisplayName}]: Polling a ticket. Result: " + result.Status);
             //WaitingForPlayers, WaitingForMatch, WaitingForServer, Canceled, Matched
             switch (result.Status)
             {
@@ -359,7 +362,7 @@ public class MasterServerPlayer : NetworkBehaviour {
                     ClientStartMatch(result.MatchId);
                     break;
                 case "Canceled":
-                    print("Cancelled");
+                    print($"[MasterServerPlayer - {teamInfo.DisplayName}]: Cancelled");
                     StopCoroutine(pollTicketCoroutine);
                     break;
             }
@@ -375,7 +378,6 @@ public class MasterServerPlayer : NetworkBehaviour {
     private void ClientStartMatch(string matchId)
     {
         if (hasAuthority) {
-            print("Starting a match.");
             EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet);
             PlayFabMultiplayerAPI.GetMatch(
                 new GetMatchRequest
@@ -404,7 +406,7 @@ public class MasterServerPlayer : NetworkBehaviour {
 
     [Client]
     private void ClientOnMatchmakingError(PlayFabError error) {
-        print("Client matchmaking error occurred: "+error.Error.ToString());
+
 
         EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed);
         if (pollTicketCoroutine != null) {
@@ -444,7 +446,6 @@ public class MasterServerPlayer : NetworkBehaviour {
         }
 
         pollTicketCancelled = true;
-        print("Matchmaking ticket cancelled success");
     }
 
     [TargetRpc]

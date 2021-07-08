@@ -17,11 +17,11 @@ public class MirrorServerUtilities : MonoBehaviour
             GameObject addedObj = new GameObject(addedName);
             addedObj.AddComponent<NetworkIdentity>().serverOnly=true;
             addedObj.AddComponent<T>();
-            Debug.Log($"{addedName} added to the server!");
+            Debug.Log($"[MirrorServerUtilities] {addedName} added to the server!");
             return addedObj;
         }
 
-        Debug.Log("Failed to add "+addedName);
+        Debug.Log("[MirrorServerUtilities] Failed to add " + addedName);
         return null;
     }
 }

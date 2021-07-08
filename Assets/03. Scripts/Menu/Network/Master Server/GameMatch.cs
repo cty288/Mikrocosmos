@@ -104,15 +104,15 @@ public class GameMatch : NetworkBehaviour {
     public bool JoinPlayer(MasterServerPlayer player, PlayerTeamInfo teamInfo) { 
         bool result = team.AddPlayerToTeam(player, teamInfo);
         if (result) {
-            Debug.Log($"Added {player.TeamInfo.DisplayName} to match {matchId}");
+            Debug.Log($"[GameMatch - {matchId}]: Added {player.TeamInfo.DisplayName} to match {matchId}");
         }
         else {
-            Debug.Log($"The room is full, or {player.TeamInfo.DisplayName} already exists in match {matchId}!");
+            Debug.Log($"[GameMatch - {matchId}]: The room is full, or {player.TeamInfo.DisplayName} already exists in match {matchId}!");
             return false;
         }
 
         if (matchState == MatchState.GameAlreadyStart || matchState == MatchState.StartingGameProcess) {
-            Debug.Log($"The game already starts!");
+            Debug.Log($"[GameMatch - {matchId}]: The game already starts!");
             return false;
         }
 
@@ -161,7 +161,7 @@ public class GameMatch : NetworkBehaviour {
     private void OnPlayerDisconnect(MasterServerPlayer player) {
         team.RemovePlayerFromTeam(player);
         teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
-        print($"{player.TeamInfo.DisplayName} exited match room {matchId}");
+        print($"[GameMatch - {matchId}]: {player.TeamInfo.DisplayName} exited match room {matchId}");
         playersInMatch.Remove(player);
         RemoveListener(player);
         DetectMatchRoomFull();
@@ -228,7 +228,7 @@ public class GameMatch : NetworkBehaviour {
 
         if (team.RemovePlayerFromTeam(player)) {
             teamInfoUpdate?.Invoke(GetExistingPlayerTeamInfos());
-            print($"{player.TeamInfo.username} exited match room {matchId}");
+            print($"[GameMatch - {matchId}]: {player.TeamInfo.username} exited match room {matchId}");
             
             RemovePlayerFromPlayerList(player);
             RemoveListener(player);
@@ -312,7 +312,7 @@ public class GameMatch : NetworkBehaviour {
         {
             if (gameProcess.HasExited)
             {
-                Debug.Log($"Game match {matchId} has exited");
+                Debug.Log($"[GameMatch - {matchId}:] Game match {matchId} has exited");
                 gameProcess = null;
                 EventCenter.Broadcast(EventType.GAME_OnMatchExited, this);
                 break;
@@ -324,7 +324,7 @@ public class GameMatch : NetworkBehaviour {
 
     [ServerCallback]
     private bool ServerStartGameProcess() {
-        Debug.Log($"Starting game process. Port: {port}");
+        Debug.Log($"[GameMatch - {matchId}:] Starting game process. Port: {port}");
         gameProcess = new Process();
 
         string processPath = ServerInfo.GameModePaths[(int)gamemode.getGameMode()];
@@ -349,7 +349,7 @@ public class GameMatch : NetworkBehaviour {
         }
 
         if (gameProcess.Start()) {
-            Debug.Log("Spawning: " + gameProcess.StartInfo.FileName + "; args=" + gameProcess.StartInfo.Arguments);
+            Debug.Log($"[GameMatch - {matchId}:] Spawning: " + gameProcess.StartInfo.FileName + "; args=" + gameProcess.StartInfo.Arguments);
             UpdateServerMatchState(MatchState.GameAlreadyStart);
             return true;
         }

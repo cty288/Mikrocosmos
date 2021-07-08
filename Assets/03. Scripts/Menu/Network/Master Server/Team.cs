@@ -154,7 +154,6 @@ public class Team {
         {
             if (username == playerTeamInfos[i].username)
             {
-                Debug.Log($"Removed {username} from server team");
                 playerTeamInfos.RemoveAt(i);
                 return;
             }

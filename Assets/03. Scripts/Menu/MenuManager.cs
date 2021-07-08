@@ -126,7 +126,7 @@ public class MenuManager : RootPanel {
         }, error => {
             StopWaiting();
             EventCenter.Broadcast<string, UnityAction, string, object[]>(EventType.MENU_Error, "ERROR_NETWORK_SERVER", CheckFirstTimeUser, "MENU_RETRY",null);
-            print(error.Error.ToString());
+            print("[MenuManager] "+ error.Error.ToString());
         });
     }
 
@@ -213,7 +213,7 @@ public class MenuManager : RootPanel {
             cancelMatchmakingButton.gameObject.SetActive(false);
             cancelMatchmakingButton.interactable = false;
         }
-        Debug.Log($"Client request new match room success! Matchid: {thisPlayerTeamInfo.matchId}");
+        Debug.Log($"[MenuManager] Client request new match room success! Matchid: {thisPlayerTeamInfo.matchId}");
         //lobby panel setup
         if (gamemodePanel) {
             gamemodePanel.SetActive(false);
