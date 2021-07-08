@@ -6,10 +6,10 @@ using MikrocosmosDatabase;
 using UnityEngine;
 
 public class ServerDatabaseManager : MonoBehaviour {
-    private UserTableManager userTableManager;
-    private PlayerTableManager playerTableManager;
+    protected UserTableManager userTableManager;
+    protected PlayerTableManager playerTableManager;
 
-    private static ServerDatabaseManager singleton;
+    protected static ServerDatabaseManager singleton;
     public static ServerDatabaseManager Singleton
     {
         get
@@ -60,21 +60,7 @@ public class ServerDatabaseManager : MonoBehaviour {
     }
 
 
-    public async void AddMatchIdToDatabase(PlayerTeamInfo teamInfo, string matchId) {
-        string displayName = teamInfo.DisplayName;
-        Player searchedPlayer = await playerTableManager.SearchByDisplayName(displayName);
-
-        if (searchedPlayer != null) {
-            searchedPlayer.JoinedMatchid = matchId;
-
-            bool result = await playerTableManager.Update(searchedPlayer);
-
-            if (result) 
-                Debug.Log($"[ServerDatabaseManager] Successfully updated {matchId} to {displayName}'s data on the database!");
-            }else {
-                Debug.Log($"[ServerDatabaseManager] Failed to update {matchId} to {displayName}'s data on the database!");
-        }
-    }
+   
        
 }
 

@@ -68,7 +68,7 @@ public class MasterServerNetworkManager : NetworkManager {
     private void InitializeServerOnlyObjs() {
         matchManager= MirrorServerUtilities.SpawnServerOnlyObject<MatchManager>("Match Manager").GetComponent<MatchManager>();
         MirrorServerUtilities.SpawnServerOnlyObject<NHibernateHelper>("Nihbernate Helper");
-        MirrorServerUtilities.SpawnServerOnlyObject<ServerDatabaseManager>("Database Manager");
+        MirrorServerUtilities.SpawnServerOnlyObject<MenuServerDatabaseManager>("Menu Database Manager");
     }
 
     

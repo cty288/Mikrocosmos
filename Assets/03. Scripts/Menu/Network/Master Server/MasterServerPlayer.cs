@@ -126,7 +126,7 @@ public class MasterServerPlayer : NetworkBehaviour {
         TargetOnLobbyStateUpdated(matchState,match.Ip,match.Port);
 
         if (matchState == MatchState.StartingGameProcess || matchState == MatchState.GameAlreadyStart) {
-            ServerDatabaseManager.Singleton.AddMatchIdToDatabase(teamInfo,match.MatchId);
+            ((MenuServerDatabaseManager)ServerDatabaseManager.Singleton).AddMatchIdToDatabase(teamInfo,match.MatchId);
         }
     }
 
