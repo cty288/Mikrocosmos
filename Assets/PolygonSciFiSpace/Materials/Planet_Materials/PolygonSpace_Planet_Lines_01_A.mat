@@ -132,6 +132,7 @@ Material:
     - _Cloud_Contrast: 1.2
     - _Cloud_Falloff: 4.24
     - _Cloud_Tiling: -3.3
+    - _ColorMask: 15
     - _Contrast: -8.14
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -161,9 +162,15 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
+    - _StencilWriteMask: 255
     - _Strength: 2.72
     - _Tiling: 0.97
     - _UVSec: 0
+    - _UseUIAlphaClip: 0
     - _ZWrite: 1
     - __dirty: 1
     - _frez: 16.33
@@ -179,4 +186,5 @@ Material:
     - _Second_Color: {r: 0.31617647, g: 0.25890556, b: 0.22783305, a: 0}
     - _Size: {r: 0, g: 0, b: 0, a: 0}
     - _Smoothness: {r: 0, g: 0, b: 0, a: 0}
+    - _Specular: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
