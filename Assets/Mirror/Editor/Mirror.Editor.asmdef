@@ -1,17 +1,20 @@
 {
     "name": "Mirror.Editor",
+    "rootNamespace": "",
     "references": [
         "Mirror",
-        "Mirror.Weaver"
+        "Mirror.Weaver",
+        "MikroFramework"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

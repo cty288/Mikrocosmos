@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using MikroFramework;
 using Mirror.RemoteCalls;
 using UnityEngine;
+
 
 namespace Mirror
 {
@@ -11,7 +13,7 @@ namespace Mirror
     [AddComponentMenu("")]
     [RequireComponent(typeof(NetworkIdentity))]
     [HelpURL("https://mirror-networking.gitbook.io/docs/guides/networkbehaviour")]
-    public abstract class NetworkBehaviour : MonoBehaviour
+    public abstract class NetworkBehaviour : MikroBehavior
     {
         internal float lastSyncTime;
 
@@ -676,5 +678,9 @@ namespace Mirror
 
         /// <summary>Stop event, only called for objects the client has authority over.</summary>
         public virtual void OnStopAuthority() {}
+
+        protected override void OnBeforeDestroy() {
+            
+        }
     }
 }
