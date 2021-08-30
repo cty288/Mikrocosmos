@@ -1,12 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MikroFramework.Event;
 using Mirror;
 using PlayFab;
 using PlayFab.ClientModels;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using EventType = MikroFramework.Event.EventType;
 
 
 /// <summary>
@@ -27,10 +29,7 @@ public class MenuManager : RootPanel {
         OnStartAddListeners();
     }
 
-    void OnDestroy()
-    {
-        OnDestroyRemoveListeners();
-    }
+   
 
     void Start()
     {
@@ -48,63 +47,49 @@ public class MenuManager : RootPanel {
     }
 
     private void OnStartAddListeners() {
-        EventCenter.AddListener(EventType.MENU_OnNewUserEnterMenu, HandleOpenNewUserPanel);
-        EventCenter.AddListener(EventType.MENU_OnUserEnterMenu,HandleOnUserEnterMenu);
-        EventCenter.AddListener(EventType.MENU_AuthorityOnConnected,HandleOnEnterMasterServerSuccess);
+        AddListener(EventType.MENU_OnNewUserEnterMenu, HandleOpenNewUserPanel);
+        AddListener(EventType.MENU_OnUserEnterMenu,HandleOnUserEnterMenu);
+        AddListener(EventType.MENU_AuthorityOnConnected,HandleOnEnterMasterServerSuccess);
         
         
-        EventCenter.AddListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
+        AddListener(EventType.MENU_Error, SetErrorMessage);
 
 
-        EventCenter.AddListener<bool,bool,string>(EventType.MENU_MATCHMAKING_ClientRequestingMatchmaking,
+        AddListener(EventType.MENU_MATCHMAKING_ClientRequestingMatchmaking,
             HandleClientRequestMatchmaking);
-        EventCenter.AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed,HandleMatchmakingFailed);
-        
-        EventCenter.AddListener<PlayerTeamInfo>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,HandleClientRequestMatchmakingSuccess);
-        EventCenter.AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet,HandleClientReadyToGetMatch);
+        AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed,HandleMatchmakingFailed);
+
+        AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,HandleClientRequestMatchmakingSuccess);
+        AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet,HandleClientReadyToGetMatch);
 
 
-        EventCenter.AddListener<MatchError>(EventType.MENU_OnClientLeaveLobbyFailed,HandleLeaveLobbyFailed);
-        EventCenter.AddListener(EventType.MENU_OnClientLeaveLobbySuccess,HandleLeaveLobbySuccess);
+        AddListener(EventType.MENU_OnClientLeaveLobbyFailed,HandleLeaveLobbyFailed);
+        AddListener(EventType.MENU_OnClientLeaveLobbySuccess,HandleLeaveLobbySuccess);
 
-        EventCenter.AddListener<MatchState, string, ushort, Mode>(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
-        EventCenter.AddListener(EventType.MENU_OnAuthenticaeteFailed,HandleOnAuthenticateFailed);
-        EventCenter.AddListener(EventType.MENU_OnClientReceiveServerStartingProcessFailed, HanleOnClientReceiveServerStartingProcessFailed);
+        AddListener(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
+        AddListener(EventType.MENU_OnAuthenticaeteFailed,HandleOnAuthenticateFailed);
+        AddListener(EventType.MENU_OnClientReceiveServerStartingProcessFailed, HanleOnClientReceiveServerStartingProcessFailed);
     }
 
-    private void OnDestroyRemoveListeners()
-    {
-        EventCenter.RemoveListener(EventType.MENU_OnNewUserEnterMenu, HandleOpenNewUserPanel);
-        EventCenter.RemoveListener(EventType.MENU_OnUserEnterMenu, HandleOnUserEnterMenu);
-
-        EventCenter.RemoveListener<string, UnityAction, string, object[]>(EventType.MENU_Error, SetErrorMessage);
-        EventCenter.RemoveListener<bool, bool, string>(EventType.MENU_MATCHMAKING_ClientRequestingMatchmaking,
-            HandleClientRequestMatchmaking);
-        EventCenter.RemoveListener(EventType.MENU_AuthorityOnConnected, HandleOnEnterMasterServerSuccess);
-        
-        EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed, HandleMatchmakingFailed);
-        EventCenter.RemoveListener<PlayerTeamInfo>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, HandleClientRequestMatchmakingSuccess);
-        EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet, HandleClientReadyToGetMatch);
-        EventCenter.RemoveListener<MatchError>(EventType.MENU_OnClientLeaveLobbyFailed, HandleLeaveLobbyFailed);
-        EventCenter.RemoveListener(EventType.MENU_OnClientLeaveLobbySuccess, HandleLeaveLobbySuccess);
-        EventCenter.RemoveListener<MatchState, string, ushort, Mode>(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
-        EventCenter.RemoveListener(EventType.MENU_OnAuthenticaeteFailed, HandleOnAuthenticateFailed);
-        EventCenter.RemoveListener(EventType.MENU_OnClientReceiveServerStartingProcessFailed, HanleOnClientReceiveServerStartingProcessFailed);
-    }
-
-    private void HandleOnAuthenticateFailed()
+  
+    private void HandleOnAuthenticateFailed(MikroMessage msg)
     {
         SetErrorMessage("MENU_AUTHENTICATE_FAILED",()=> {
             Application.Quit();}, "MENU_LABEL_EXIT");
     }
 
-    private void HanleOnClientReceiveServerStartingProcessFailed()
+    private void HanleOnClientReceiveServerStartingProcessFailed(MikroMessage msg)
     {
         StopWaiting();
         gamemodePanel.SetActive(true);
         SetErrorMessage("MENU_SERVER_START_MATCH_FAILED");
     }
-    private void HandleLobbyStateUpdate(MatchState matchState, string ip, ushort port, Mode mode) {
+    private void HandleLobbyStateUpdate(MikroMessage msg) {
+        MatchState matchState = (MatchState) msg.GetMessage(0);
+        string ip = msg.GetMessage(1).ToString();
+        ushort port =(ushort) msg.GetMessage(2);
+        Mode mode=(Mode)msg.GetMessage(3);
+
         if (matchState == MatchState.GameAlreadyStart) {
             StartWaiting(true,true, "MENU_ENTER_GAME_LOADING");
         }
@@ -118,15 +103,15 @@ public class MenuManager : RootPanel {
         }, result => {
             StopWaiting();
             if (result.PlayerProfile.DisplayName == null) {
-                EventCenter.Broadcast(EventType.MENU_OnNewUserEnterMenu);
+                Broadcast(EventType.MENU_OnNewUserEnterMenu,null);
 
             }else {
                 PlayfabTokenPasser._instance.SavePlayerName(result.PlayerProfile.DisplayName);
-                EventCenter.Broadcast(EventType.MENU_OnUserEnterMenu);
+                Broadcast(EventType.MENU_OnUserEnterMenu,null);
             }
         }, error => {
             StopWaiting();
-            EventCenter.Broadcast<string, UnityAction, string, object[]>(EventType.MENU_Error, "ERROR_NETWORK_SERVER", CheckFirstTimeUser, "MENU_RETRY",null);
+            Broadcast(EventType.MENU_Error, MikroMessage.Create("ERROR_NETWORK_SERVER", (UnityAction) CheckFirstTimeUser, "MENU_RETRY",null));
             print("[MenuManager] "+ error.Error.ToString());
         });
     }
@@ -134,8 +119,7 @@ public class MenuManager : RootPanel {
 
     #region EventHandlers
     private void HandleStartLoadingCircle(bool hasloadingMessage = false, bool hasLoadingPeriod = false, string
-        loadingMessage = "")
-    {
+        loadingMessage = "") {
         loadingCircle.StartLoadingCircle(hasloadingMessage,hasLoadingPeriod,loadingMessage);
     }
 
@@ -145,7 +129,7 @@ public class MenuManager : RootPanel {
     }
 
 
-    private void HandleOpenNewUserPanel()
+    private void HandleOpenNewUserPanel(MikroMessage msg)
     {
         if (firstTimeUserPanel.gameObject) {
             firstTimeUserPanel.gameObject.SetActive(true);
@@ -153,15 +137,15 @@ public class MenuManager : RootPanel {
         
     }
 
-    private void HandleOnUserEnterMenu() {
+    private void HandleOnUserEnterMenu(MikroMessage msg) {
         print("Old User enter game");
         OpenInfoPanel("INTERNET_CONNECTING_TO_SERVER", true);
         //MIRROR_OnMirrorConnectSuccess and MIRROR_OnMirrorConnectTimeout will be triggered
         //connect to server using NetworkConnector
-        NetworkConnector._singleton.ConnectToServer(ServerInfo.ServerIp,ServerInfo.MasterServerPort,null,HandleOnEnterMasterServerFailed);
+        NetworkConnector._singleton.ConnectToServer(ServerInfo.ServerIp,ServerInfo.MasterServerPort,null, HandleOnEnterMasterServerFailed);
     }
 
-    private void HandleOnEnterMasterServerSuccess() {
+    private void HandleOnEnterMasterServerSuccess(MikroMessage msg) {
         CloseInfoPanel();
         if (gamemodePanel) {
             gamemodePanel.SetActive(true);
@@ -170,15 +154,14 @@ public class MenuManager : RootPanel {
         print("Connect to master server");
     }
 
-    private void HandleOnEnterMasterServerFailed() {
+    private void HandleOnEnterMasterServerFailed(MikroMessage msg) {
         CloseInfoPanel();
-        EventCenter.Broadcast<string, UnityAction, string, object[]>(EventType.MENU_Error, "ERROR_NETWORK_SERVER", HandleOnUserEnterMenu, "MENU_RETRY", null);
+        Broadcast(EventType.MENU_Error, MikroMessage.Create("ERROR_NETWORK_SERVER", (Action<MikroMessage>)HandleOnUserEnterMenu, "MENU_RETRY", null));
     }
 
-    private void HandleMatchmakingFailed() {
+    private void HandleMatchmakingFailed(MikroMessage msg) {
         StopWaiting();
-        EventCenter.Broadcast<string, UnityAction, string, object[]>
-            (EventType.MENU_Error, "MENU_ERROR_MATCHMAKING_FAILED", () => { }, "GAME_ACTION_CLOSE", null);
+        Broadcast(EventType.MENU_Error, MikroMessage.Create("MENU_ERROR_MATCHMAKING_FAILED", (Action) (() => { }), "GAME_ACTION_CLOSE", null));
         
         if (cancelMatchmakingButton) {
             cancelMatchmakingButton.gameObject.SetActive(false);
@@ -186,8 +169,13 @@ public class MenuManager : RootPanel {
 
     }
 
-    private void HandleClientRequestMatchmaking(bool hasloadingMessage = false, bool hasLoadingPeriod = false, string
-        loadingMessage = "") {
+    private void HandleClientRequestMatchmaking(MikroMessage msg) {
+
+        bool hasloadingMessage = (bool) msg.GetMessage(0);
+        bool hasLoadingPeriod = (bool) msg.GetMessage(1);
+        string loadingMessage = msg.GetMessage(2).ToString();
+
+
         HandleStartLoadingCircle(hasloadingMessage,hasLoadingPeriod,loadingMessage);
 
         if (cancelMatchmakingButton) {
@@ -198,7 +186,7 @@ public class MenuManager : RootPanel {
 
     }
 
-    private void HandleClientReadyToGetMatch() {
+    private void HandleClientReadyToGetMatch(MikroMessage msg) {
         if (cancelMatchmakingButton)
         {
             loadingCircle.ChangeLoadingMessage(true, "MENU_WAITING_FIND_MATCH");
@@ -207,7 +195,8 @@ public class MenuManager : RootPanel {
         }
     }
 
-    private void HandleClientRequestMatchmakingSuccess(PlayerTeamInfo thisPlayerTeamInfo) {
+    private void HandleClientRequestMatchmakingSuccess(MikroMessage msg) {
+        PlayerTeamInfo thisPlayerTeamInfo = msg.GetSingleMessage() as PlayerTeamInfo;
         StopWaiting();
         
         if (cancelMatchmakingButton) {
@@ -223,12 +212,14 @@ public class MenuManager : RootPanel {
         
     }
 
-    private void HandleLeaveLobbySuccess() {
+    private void HandleLeaveLobbySuccess(MikroMessage msg) {
         StopWaiting();
         gamemodePanel.SetActive(true);
     }
 
-    private void HandleLeaveLobbyFailed(MatchError error) {
+    private void HandleLeaveLobbyFailed(MikroMessage msg) {
+        MatchError error =(MatchError) msg.GetSingleMessage();
+
         StopWaiting();
         if (error == MatchError.MatchAlreadyStart) {
             SetErrorMessage("MENU_ERROR_MATCH_ALREADY_START");
@@ -296,7 +287,7 @@ public class MenuManager : RootPanel {
     }
 
     private void OnCancelMatchmakingButtonClicked() {
-        EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingCancelled);
+        Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingCancelled,null);
         if (cancelMatchmakingButton) {
             cancelMatchmakingButton.gameObject.SetActive(false);
             StopWaiting();

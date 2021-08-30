@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using kcp2k;
+using MikroFramework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -14,7 +15,7 @@ namespace Mirror
     [DisallowMultipleComponent]
     [AddComponentMenu("Network/NetworkManager")]
     [HelpURL("https://mirror-networking.gitbook.io/docs/components/network-manager")]
-    public class NetworkManager : MonoBehaviour
+    public class NetworkManager : MikroBehavior
     {
         /// <summary>Enable to keep NetworkManager alive when changing scenes.</summary>
         // This should be set if your game has a single NetworkManager that exists for the lifetime of the process. If there is a NetworkManager in each scene, then this should not be set.</para>
@@ -733,6 +734,10 @@ namespace Mirror
         public virtual void OnDestroy()
         {
             //Debug.Log("NetworkManager destroyed");
+        }
+
+        protected override void OnBeforeDestroy() {
+            
         }
 
         /// <summary>The name of the current network scene.</summary>

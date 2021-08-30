@@ -1,14 +1,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MikroFramework;
+using MikroFramework.Event;
 using PlayFab;
 using PlayFab.ClientModels;
 using Polyglot;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using EventType = MikroFramework.Event.EventType;
 
-public class LoginPanel : MonoBehaviour {
+public class LoginPanel : MikroBehavior {
     [SerializeField] private TMP_InputField usernameInputField;
     [SerializeField] private TMP_InputField passwordInputField;
 
@@ -27,8 +30,8 @@ public class LoginPanel : MonoBehaviour {
         autoLoginToggle.onValueChanged.AddListener(onAutoLoginToggleTurnOff);
         rememberAccountToggle.onValueChanged.AddListener(onRememberAccountToggleTurnOff);
 
-        EventCenter.AddListener(EventType.LAUNCHER_OnPlayFabLoginSuccess,HandleOnLoginSuccess);
-        EventCenter.AddListener<PlayFabError>(EventType.LAUNCHER_OnPlayFabLoginFailed,HandleOnLoginFailed);
+        AddListener(EventType.LAUNCHER_OnPlayFabLoginSuccess,HandleOnLoginSuccess);
+        AddListener(EventType.LAUNCHER_OnPlayFabLoginFailed,HandleOnLoginFailed);
 
         InitializeInputFieldAndAutoLogin();
     }
@@ -46,10 +49,11 @@ public class LoginPanel : MonoBehaviour {
         }
     }
 
-    void OnDestroy() {
-        EventCenter.RemoveListener(EventType.LAUNCHER_OnPlayFabLoginSuccess, HandleOnLoginSuccess);
-        EventCenter.RemoveListener<PlayFabError>(EventType.LAUNCHER_OnPlayFabLoginFailed, HandleOnLoginFailed);
+
+    protected override void OnBeforeDestroy() {
+        
     }
+
     void Update()
     {
         if (autoLoginToggle.isOn) {
@@ -63,7 +67,7 @@ public class LoginPanel : MonoBehaviour {
             ,true);
     }
 
-    private void HandleOnLoginSuccess() {
+    private void HandleOnLoginSuccess(MikroMessage msg) {
         
 
         if (autoLoginToggle.isOn)
@@ -82,9 +86,9 @@ public class LoginPanel : MonoBehaviour {
 
             PlayfabUtilities.GetUsername(username => {
                 PlayerPrefs.SetString("Username_saved",username);
-                EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
+                Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess,null);
             }, error => {
-                EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
+                Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess, null);
             });
 
         }
@@ -92,7 +96,7 @@ public class LoginPanel : MonoBehaviour {
             PlayerPrefs.SetInt("Remember_Account", 0);
             PlayerPrefs.SetString("Username_saved", "");
             PlayerPrefs.SetString("Password_saved","");
-            EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
+            Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess,null);
         }
 
 
@@ -119,17 +123,19 @@ public class LoginPanel : MonoBehaviour {
         }
     }
 
-    private void HandleOnLoginFailed(PlayFabError error)
+    private void HandleOnLoginFailed(MikroMessage msg)
     {
+        PlayFabError error = msg.GetSingleMessage() as PlayFabError;
+        
         Launcher._instance.CloseInfoPanel();
 
         print(error.ErrorMessage);
         if (error.Error == PlayFabErrorCode.InvalidUsernameOrPassword) {
-            EventCenter.Broadcast<string>(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_FAILED_PWD");
+            Broadcast(EventType.LAUNCHER_Error_Message, MikroMessage.Create("LAUNCHER_LOGIN_FAILED_PWD"));
         }
         else
         {
-            EventCenter.Broadcast<string>(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_NETWORK");
+            Broadcast(EventType.LAUNCHER_Error_Message, MikroMessage.Create("LAUNCHER_LOGIN_NETWORK"));
         }
  
     }

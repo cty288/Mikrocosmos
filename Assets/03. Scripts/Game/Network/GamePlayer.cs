@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using MikroFramework.Event;
 using Mirror;
 using UnityEngine;
+using EventType = MikroFramework.Event.EventType;
 
 public class GamePlayer : NetworkBehaviour {
     private string username;
@@ -14,7 +16,7 @@ public class GamePlayer : NetworkBehaviour {
     [Command]
     private void CmdUpdatePlayfabToken(PlayfabToken token) {
         this.username = token.Username;
-        EventCenter.Broadcast(EventType.GAME_ServerOnPlayerConnected, this);
+        Broadcast(EventType.GAME_ServerOnPlayerConnected, MikroMessage.Create(this));
     }
 
     [ServerCallback]
@@ -23,7 +25,7 @@ public class GamePlayer : NetworkBehaviour {
     }
 
     public override void OnStopServer() {
-        EventCenter.Broadcast(EventType.GAME_ServerOnPlayerDisconnected, this);
+       Broadcast(EventType.GAME_ServerOnPlayerDisconnected, MikroMessage.Create(this));
     }
 
     #endregion
@@ -33,7 +35,7 @@ public class GamePlayer : NetworkBehaviour {
     public override void OnStartAuthority()
     {
         base.OnStartAuthority();
-        EventCenter.Broadcast(EventType.GAME_OnClientConnectingToServerSuccess);
+        Broadcast(EventType.GAME_OnClientConnectingToServerSuccess,null);
         if (PlayfabTokenPasser._instance) {
             CmdUpdatePlayfabToken(PlayfabTokenPasser._instance.Token);
         }
@@ -43,11 +45,11 @@ public class GamePlayer : NetworkBehaviour {
         if (hasAuthority) {
             if (newValue == 1) {
                 Debug.Log("Authenticate success!");
-                EventCenter.Broadcast(EventType.GAME_OnClientAuthenticated,true);
+                Broadcast(EventType.GAME_OnClientAuthenticated,MikroMessage.Create(true));
             }else
             {
                 Debug.Log("Authenticate failed!");
-                EventCenter.Broadcast(EventType.GAME_OnClientAuthenticated,false);
+                Broadcast(EventType.GAME_OnClientAuthenticated,MikroMessage.Create(false));
             }
         }
 

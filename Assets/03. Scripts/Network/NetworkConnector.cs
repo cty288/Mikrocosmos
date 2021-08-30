@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MikroFramework.Event;
 using Mirror;
 using UnityEngine;
 
@@ -33,7 +34,7 @@ public class NetworkConnector : MonoBehaviour {
         /// <param name="checkInterval">The time interval of each check during timeout</param>
         /// <param name="timeout">Timeout time</param>
         /// <returns></returns>
-        public void ConnectToServer(string address, ushort port, Action onConnecting=null, Action onConectFailed=null, float minimumWaitTime=1.5f,float checkInterval=2f,
+        public void ConnectToServer(string address, ushort port, Action<MikroMessage> onConnecting=null, Action<MikroMessage> onConectFailed=null, float minimumWaitTime=1.5f,float checkInterval=2f,
         float timeout=10f) {
         StartCoroutine(NetworkConnector.GetOrCreate(gameObject).Connect(address, port,minimumWaitTime,
             checkInterval,timeout, onConnecting,onConectFailed));
@@ -42,8 +43,9 @@ public class NetworkConnector : MonoBehaviour {
 
 
     private IEnumerator Connect(string address, ushort port,float minimumWaitTime=1.5f, float checkInterval=2f,
-        float timeout=10f,Action onConnecting=null, Action onConnectFailed=null) {
-        onConnecting?.Invoke();
+        float timeout=10f, Action<MikroMessage> onConnecting = null, Action<MikroMessage> onConnectFailed = null) {
+
+        onConnecting?.Invoke(null);
         yield return new WaitForSeconds(minimumWaitTime);
         
         NetworkManager.singleton.StopClient();
@@ -72,7 +74,7 @@ public class NetworkConnector : MonoBehaviour {
         }
 
         if (!NetworkClient.isConnected) { 
-            onConnectFailed?.Invoke();
+            onConnectFailed?.Invoke(null);
         }
         
     }

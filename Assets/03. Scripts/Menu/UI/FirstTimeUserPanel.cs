@@ -1,11 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using MikroFramework;
+using MikroFramework.Event;
 using PlayFab;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using EventType = MikroFramework.Event.EventType;
 
-public class FirstTimeUserPanel : MonoBehaviour {
+public class FirstTimeUserPanel : MikroBehavior {
     private VerifiedInputBox playerNameInputBox;
     private Button confirmButton;
 
@@ -31,27 +35,28 @@ public class FirstTimeUserPanel : MonoBehaviour {
                 MenuManager._instance.StopWaiting();
                 MenuManager._instance.OpenInfoPanel("MENU_USER_NAME_CREATE_SUCCESS",
                     () => {
-                        EventCenter.Broadcast(EventType.MENU_OnUserEnterMenu);
+                        Broadcast(EventType.MENU_OnUserEnterMenu,null);
                         this.gameObject.SetActive(false);
                     });
             }, error => {
                 MenuManager._instance.StopWaiting();
                 if (error.Error == PlayFabErrorCode.NameNotAvailable) {
-                    EventCenter.Broadcast<string, UnityAction, string, object[]>(EventType.MENU_Error,
-                        "MENU_USER_NAME_RULE_ERROR2", () => { }, "MENU_RETRY", null);
+                    Broadcast(EventType.MENU_Error, MikroMessage.Create(
+                        "MENU_USER_NAME_RULE_ERROR2", (Action)(() => { }), "MENU_RETRY", null));
                 }
                 else if (error.Error == PlayFabErrorCode.ProfaneDisplayName) {
-                    EventCenter.Broadcast<string, UnityAction, string, object[]>(EventType.MENU_Error,
-                        "MENU_USER_NAME_RULE_ERROR3", () => { }, "MENU_RETRY", null);
+                    Broadcast(EventType.MENU_Error,
+                        MikroMessage.Create("MENU_USER_NAME_RULE_ERROR3",  (Action) (() => { }), "MENU_RETRY", null));
                 }
                 else {
-                    EventCenter.Broadcast<string, UnityAction, string, object[]>(EventType.MENU_Error,
-                        "MENU_UNKNOWN_ERROR", () => { }, "MENU_RETRY", null);
+                    Broadcast(EventType.MENU_Error,
+                        MikroMessage.Create("MENU_UNKNOWN_ERROR", (Action)(() => { }), "MENU_RETRY", null));
                 }
             });
 
     }
 
-
-
+    protected override void OnBeforeDestroy() {
+        
+    }
 }

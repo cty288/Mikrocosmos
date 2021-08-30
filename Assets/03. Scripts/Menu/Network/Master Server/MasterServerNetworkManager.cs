@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using MikrocosmosDatabase;
+using MikroFramework.Event;
 using Mirror;
 using UnityEngine;
+using EventType = MikroFramework.Event.EventType;
 
 public class MasterServerNetworkManager : NetworkManager {
 
@@ -16,15 +18,19 @@ public class MasterServerNetworkManager : NetworkManager {
 
     #region Server
     [Server]
-    public void AddPlayer(MasterServerPlayer player) {
+    public void AddPlayer(MikroMessage msg) {
+        MasterServerPlayer player = msg.GetSingleMessage() as MasterServerPlayer;
+        
         print($"[MasterServerNetworkManager] Added {player.TeamInfo.DisplayName} to the server player list");
         playersConnections.Add(player);
 
     }
 
     [Server]
-    public void RemovePlayer(MasterServerPlayer player)
+    public void RemovePlayer(MikroMessage msg)
     {
+        MasterServerPlayer player = msg.GetSingleMessage() as MasterServerPlayer;
+
         if (player) {
             print($"[MasterServerNetworkManager] Removed {player.TeamInfo.DisplayName} from the server player list");
             playersConnections.Remove(player);
@@ -50,15 +56,15 @@ public class MasterServerNetworkManager : NetworkManager {
         playersConnections = new List<MasterServerPlayer>();
         Debug.Log("[MasterServerNetworkManager] Server start!");
         InitializeServerOnlyObjs();
-        EventCenter.AddListener<MasterServerPlayer>(EventType.MENU_OnServerPlayerAdded,AddPlayer);
-        EventCenter.AddListener<MasterServerPlayer>(EventType.MENU_OnServerPlayerDisconnected, RemovePlayer);
+        AddListener(EventType.MENU_OnServerPlayerAdded,AddPlayer);
+        AddListener(EventType.MENU_OnServerPlayerDisconnected, RemovePlayer);
     }
 
     [Server]
     public override void OnStopServer() {
         base.OnStopServer();
-        EventCenter.RemoveListener<MasterServerPlayer>(EventType.MENU_OnServerPlayerAdded, AddPlayer);
-        EventCenter.RemoveListener<MasterServerPlayer>(EventType.MENU_OnServerPlayerDisconnected, RemovePlayer);
+        RemoveListener(EventType.MENU_OnServerPlayerAdded, AddPlayer);
+        RemoveListener(EventType.MENU_OnServerPlayerDisconnected, RemovePlayer);
     }
 
     /// <summary>

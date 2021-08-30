@@ -2,9 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using MikroFramework.Event;
 using Mirror;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using EventType = MikroFramework.Event.EventType;
 
 public enum MatchState {
     WaitingForPlayers,
@@ -292,7 +294,7 @@ public class GameMatch : NetworkBehaviour {
                 case MatchState.StartingGameProcess:
                     //Ready to start game - invoke event and start the process
                     ServerStartGameProcess();
-                    EventCenter.Broadcast(EventType.MENU_OnServerMatchStartingProcess,this);
+                    Broadcast(EventType.MENU_OnServerMatchStartingProcess,MikroMessage.Create(this));
                     break;
                 case MatchState.GameAlreadyStart:
                     //start monitoring if the game has ended
@@ -314,7 +316,7 @@ public class GameMatch : NetworkBehaviour {
             {
                 Debug.Log($"[GameMatch - {matchId}:] Game match {matchId} has exited");
                 gameProcess = null;
-                EventCenter.Broadcast(EventType.GAME_OnMatchExited, this);
+                Broadcast(EventType.GAME_OnMatchExited, MikroMessage.Create(this));
                 break;
             }
             yield return new WaitForSeconds(5f);

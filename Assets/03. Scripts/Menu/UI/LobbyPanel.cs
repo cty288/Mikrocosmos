@@ -1,13 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MikroFramework;
+using MikroFramework.Event;
 using Mirror;
 using Polyglot;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using EventType = MikroFramework.Event.EventType;
 
-public class LobbyPanel : MonoBehaviour {
+public class LobbyPanel : MikroBehavior {
     [SerializeField] private LobbyPanelChild lobbyPanel;
 
     [SerializeField] private PlayerInfo[] team1Info;
@@ -23,10 +26,10 @@ public class LobbyPanel : MonoBehaviour {
 
     void Awake() {
         
-        EventCenter.AddListener<PlayerTeamInfo>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,
+        AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,
             HandleClientJoinLobby);
-        EventCenter.AddListener(EventType.MENU_OnClientLeaveLobbySuccess, HandleLeaveLobbySuccess);
-        EventCenter.AddListener<MatchError>(EventType.MENU_OnClientLeaveLobbyFailed,HandleLeaveLobbyFailed);
+        AddListener(EventType.MENU_OnClientLeaveLobbySuccess, HandleLeaveLobbySuccess);
+        AddListener(EventType.MENU_OnClientLeaveLobbyFailed,HandleLeaveLobbyFailed);
 
         LobbyPanelChild.onLobbyPanelChildEnabled += AddLobbyPanelChildListeners;
         LobbyPanelChild.onLobbyPanelChildDisabled += RemoveLobbyPanelChildListeners;
@@ -35,33 +38,28 @@ public class LobbyPanel : MonoBehaviour {
         leaveLobbyButton.onClick.AddListener(OnLeaveLobbyButtonClicked);
     }
 
-    void OnDestroy() {
+   
 
-        EventCenter.RemoveListener<PlayerTeamInfo>(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess,
-            HandleClientJoinLobby);
-        EventCenter.RemoveListener(EventType.MENU_OnClientLeaveLobbySuccess, HandleLeaveLobbySuccess);
-        EventCenter.RemoveListener<MatchError>(EventType.MENU_OnClientLeaveLobbyFailed, HandleLeaveLobbyFailed);
-
-        LobbyPanelChild.onLobbyPanelChildEnabled -= AddLobbyPanelChildListeners;
-        LobbyPanelChild.onLobbyPanelChildDisabled -= RemoveLobbyPanelChildListeners;
-        // EventCenter.RemoveListener<PlayerTeamInfo>(EventType.MENU_OnClientNewPlayerJoinLobby, HandleOnNewPlayerJoinLobby);
-        // EventCenter.RemoveListener<PlayerTeamInfo>(EventType.MENU_OnClientPlayerDisconnected, HandleOnPlayerDisconnected);
+    protected override void OnBeforeDestroy() {
+        
     }
 
-
     private void AddLobbyPanelChildListeners() {
-        EventCenter.AddListener<PlayerTeamInfo[],PlayerTeamInfo>(EventType.MENU_OnClientLobbyInfoUpdated,DisplayPlayerToLobby);
-        EventCenter.AddListener<MatchState,string,ushort,Mode>(EventType.MENU_OnClientLobbyStateUpdated,HandleLobbyStateUpdate);
-        EventCenter.AddListener<float>(EventType.MENU_OnClientLobbyCountdownUpdated,HandleOnCountdownUpdate);
+        AddListener(EventType.MENU_OnClientLobbyInfoUpdated,DisplayPlayerToLobby);
+        AddListener(EventType.MENU_OnClientLobbyStateUpdated,HandleLobbyStateUpdate);
+        AddListener(EventType.MENU_OnClientLobbyCountdownUpdated,HandleOnCountdownUpdate);
     }
 
     private void RemoveLobbyPanelChildListeners() {
-        EventCenter.RemoveListener<PlayerTeamInfo[], PlayerTeamInfo>(EventType.MENU_OnClientLobbyInfoUpdated, DisplayPlayerToLobby);
-        EventCenter.RemoveListener<MatchState,string,ushort,Mode>(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
-        EventCenter.RemoveListener<float>(EventType.MENU_OnClientLobbyCountdownUpdated, HandleOnCountdownUpdate);
+        RemoveListener(EventType.MENU_OnClientLobbyInfoUpdated, DisplayPlayerToLobby);
+        RemoveListener(EventType.MENU_OnClientLobbyStateUpdated, HandleLobbyStateUpdate);
+        RemoveListener(EventType.MENU_OnClientLobbyCountdownUpdated, HandleOnCountdownUpdate);
     }
 
-    private void HandleClientJoinLobby(PlayerTeamInfo thisPlayerInfo) {
+    private void HandleClientJoinLobby(MikroMessage msg) {
+        PlayerTeamInfo thisPlayerInfo = msg.GetSingleMessage() as PlayerTeamInfo;
+        
+
         if (lobbyPanel) {
             lobbyPanel.gameObject.SetActive(true);
             ClearClientLobby();
@@ -69,7 +67,11 @@ public class LobbyPanel : MonoBehaviour {
     }
 
 
-    private void DisplayPlayerToLobby(PlayerTeamInfo[] teamInfo, PlayerTeamInfo myInfo) {
+    private void DisplayPlayerToLobby(MikroMessage msg) {
+
+        PlayerTeamInfo[] teamInfo = msg.GetMessage(0) as PlayerTeamInfo[];
+        PlayerTeamInfo myInfo = msg.GetMessage(1) as PlayerTeamInfo;
+
         List<PlayerTeamInfo> team0 = new List<PlayerTeamInfo>();
         List<PlayerTeamInfo> team1 = new List<PlayerTeamInfo>();
 
@@ -126,7 +128,13 @@ public class LobbyPanel : MonoBehaviour {
         }
     }
 
-    private void HandleLobbyStateUpdate(MatchState matchState,string ip, ushort port,Mode gamemode) {
+    private void HandleLobbyStateUpdate(MikroMessage msg) {
+        MatchState matchState = (MatchState)msg.GetMessage(0);
+        string ip=msg.GetMessage(1).ToString();
+        ushort port=(ushort)msg.GetMessage(2);
+        Mode gamemode=(Mode)msg.GetMessage(3);
+
+
         switch (matchState) {
             case MatchState.WaitingForPlayers:
                 SetLeaveLobbyButton(true,true);
@@ -155,7 +163,7 @@ public class LobbyPanel : MonoBehaviour {
     }
 
     private void OnJoinGameServerFailed() {
-        EventCenter.Broadcast(EventType.MENU_OnClientReceiveServerStartingProcessFailed);
+        Broadcast(EventType.MENU_OnClientReceiveServerStartingProcessFailed,null);
         if (lobbyPanel)
         {
             lobbyPanel.gameObject.SetActive(false);
@@ -213,12 +221,13 @@ public class LobbyPanel : MonoBehaviour {
         }
     }
 
-    private void HandleLeaveLobbySuccess() {
+    private void HandleLeaveLobbySuccess(MikroMessage msg) {
         lobbyPanel.gameObject.SetActive(false);
     }
 
-    private void HandleLeaveLobbyFailed(MatchError error)
-    {
+    private void HandleLeaveLobbyFailed(MikroMessage msg) {
+        MatchError error =(MatchError) msg.GetSingleMessage();
+
         if (error == MatchError.MatchAlreadyStart) {
             return;
         }
@@ -228,7 +237,8 @@ public class LobbyPanel : MonoBehaviour {
         }
     }
 
-    private void HandleOnCountdownUpdate(float countDown) {
+    private void HandleOnCountdownUpdate(MikroMessage msg) {
+        float countDown =(float) msg.GetSingleMessage();
         /*if (gamestartInfo.activeInHierarchy) {
             gamestartInfo.GetComponentInChildren<Text>().text =
                 Localization.GetFormat("LOBBY_START_INFO", countDown.ToString());

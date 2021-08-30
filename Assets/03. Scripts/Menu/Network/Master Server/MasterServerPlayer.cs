@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MikrocosmosDatabase;
+using MikroFramework.Event;
 using Mirror;
 using PlayFab;
 using PlayFab.ClientModels;
@@ -11,6 +12,7 @@ using PlayFab.MultiplayerModels;
 using UnityEngine;
 using UnityEngine.Events;
 using EntityKey = PlayFab.MultiplayerModels.EntityKey;
+using EventType = MikroFramework.Event.EventType;
 
 public class MasterServerPlayer : NetworkBehaviour {
     [SyncVar] 
@@ -45,7 +47,7 @@ public class MasterServerPlayer : NetworkBehaviour {
         onPlayerDisconnect?.Invoke(this);
         RpcOnServerPlayerStop(teamInfo);
         ServerExitLobby();
-        EventCenter.Broadcast(EventType.MENU_OnServerPlayerDisconnected,this);
+        Broadcast(EventType.MENU_OnServerPlayerDisconnected,MikroMessage.Create(this));
     }
 
     [Command]
@@ -150,7 +152,7 @@ public class MasterServerPlayer : NetworkBehaviour {
             Debug.Log($"[MasterServerPlayer - {token.PlayerName}]: {token.Username} authenticate success on the database!");
             this.entityId = token.EntityId;
             this.teamInfo = new PlayerTeamInfo(token.PlayerName, -1, "", token.Username);
-            EventCenter.Broadcast(EventType.MENU_OnServerPlayerAdded, this);
+            Broadcast(EventType.MENU_OnServerPlayerAdded, MikroMessage.Create(this));
             TargetOnAuthenticateSuccess();
         }, () => {
             Debug.Log($"[MasterServerPlayer - {token.PlayerName}]:{token.Username} authenticate failed on the database!");
@@ -202,8 +204,9 @@ public class MasterServerPlayer : NetworkBehaviour {
             }
             else
             {
-                EventCenter.Broadcast<string, UnityAction, string, object[]>(EventType.MENU_Error,
-                    "MENU_REQUEST_EXCEED", () => { }, "GAME_ACTION_CLOSE", null);
+                Broadcast(EventType.MENU_Error,
+                    MikroMessage.Create("MENU_REQUEST_EXCEED", (Action)(() => { }), "GAME_ACTION_CLOSE", null));
+                    
             }
         }
     }
@@ -231,8 +234,8 @@ public class MasterServerPlayer : NetworkBehaviour {
             }
             else
             {
-                EventCenter.Broadcast<string, UnityAction, string, object[]>(EventType.MENU_Error,
-                    "MENU_REQUEST_EXCEED", () => { }, "GAME_ACTION_CLOSE", null);
+                Broadcast(EventType.MENU_Error, MikroMessage.Create(
+                    "MENU_REQUEST_EXCEED", (Action)(() => { }), "GAME_ACTION_CLOSE", null));
             }
         }
     }
@@ -240,7 +243,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     public override void OnStartAuthority() {
         //改一下，等到身份验证成功才显示主菜单
         base.OnStartAuthority();
-        EventCenter.AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingCancelled,CancelMatchmaking);
+        AddListener(EventType.MENU_MATCHMAKING_ClientMatchmakingCancelled,CancelMatchmaking);
         if (PlayfabTokenPasser._instance) {
             CmdAuthenticatePlayfabToken(PlayfabTokenPasser._instance.Token);
         }
@@ -249,12 +252,12 @@ public class MasterServerPlayer : NetworkBehaviour {
 
     [TargetRpc]
     private void TargetOnAuthenticateSuccess() {
-        EventCenter.Broadcast(EventType.MENU_AuthorityOnConnected);
+        Broadcast(EventType.MENU_AuthorityOnConnected,null);
     }
 
     public override void OnStopAuthority() {
         base.OnStopAuthority();
-        EventCenter.RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingCancelled, CancelMatchmaking);
+        RemoveListener(EventType.MENU_MATCHMAKING_ClientMatchmakingCancelled, CancelMatchmaking);
     }
 
     /// <summary>
@@ -280,8 +283,10 @@ public class MasterServerPlayer : NetworkBehaviour {
     public void RequestMatch(Mode gamemode) {
         if (hasAuthority) {
             ticketId = "";
-            EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientRequestingMatchmaking, true, true,
-                "MANU_WAITING_MATCHMAKING");
+            Broadcast(EventType.MENU_MATCHMAKING_ClientRequestingMatchmaking, MikroMessage.Create(
+                true, true,
+                "MANU_WAITING_MATCHMAKING"));
+
             RunServerCommand<Mode>(CmdServerRequestMatch, gamemode);
         }
     }
@@ -369,7 +374,7 @@ public class MasterServerPlayer : NetworkBehaviour {
         }
         else
         {
-            CancelMatchmaking();
+            CancelMatchmaking(null);
         }
 
     }
@@ -378,7 +383,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     private void ClientStartMatch(string matchId)
     {
         if (hasAuthority) {
-            EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet);
+            Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet,null);
             PlayFabMultiplayerAPI.GetMatch(
                 new GetMatchRequest
                 {
@@ -393,14 +398,14 @@ public class MasterServerPlayer : NetworkBehaviour {
 
     [TargetRpc]
     private void TargetOnServerGetMatch(PlayerTeamInfo thisTeamInfo) {
-        EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, thisTeamInfo);
+        Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingSuccess, MikroMessage.Create(thisTeamInfo));
     }
 
     [TargetRpc]
     private void TargetOnServerFailedToGetMatch()
     {
-        EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed);
-        CancelMatchmaking();
+        Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed,null);
+        CancelMatchmaking(null);
         
     }
 
@@ -408,26 +413,26 @@ public class MasterServerPlayer : NetworkBehaviour {
     private void ClientOnMatchmakingError(PlayFabError error) {
 
 
-        EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed);
+        Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingFailed,null);
         if (pollTicketCoroutine != null) {
             StopCoroutine(pollTicketCoroutine);
             pollTicketCoroutine = null;
         }
         
-        CancelMatchmaking();
+        CancelMatchmaking(null);
     }
 
 
     [TargetRpc]
     private void TargetOnLobbyInfoUpdated(PlayerTeamInfo[] infos, PlayerTeamInfo myInfo) {
         if (hasAuthority) {
-            EventCenter.Broadcast(EventType.MENU_OnClientLobbyInfoUpdated,infos,myInfo);
+            Broadcast(EventType.MENU_OnClientLobbyInfoUpdated,MikroMessage.Create(infos,myInfo));
         }
     }
 
 
     [Client]
-    private void CancelMatchmaking() {
+    private void CancelMatchmaking(MikroMessage msg) {
         pollTicketCancelled = true;
         if (hasAuthority && ticketId!="") {
             PlayFabMultiplayerAPI.CancelAllMatchmakingTicketsForPlayer(new CancelAllMatchmakingTicketsForPlayerRequest {
@@ -451,7 +456,7 @@ public class MasterServerPlayer : NetworkBehaviour {
     [TargetRpc]
     private void TargetOnLobbyStateUpdated(MatchState state, string ip,ushort port) {
         if (hasAuthority) {
-            EventCenter.Broadcast(EventType.MENU_OnClientLobbyStateUpdated, state,ip,port,requestingMode);
+            Broadcast(EventType.MENU_OnClientLobbyStateUpdated, MikroMessage.Create(state,ip,port,requestingMode));
         }
     }
 
@@ -465,29 +470,29 @@ public class MasterServerPlayer : NetworkBehaviour {
 
     [TargetRpc]
     private void TargetOnLeaveLobbyFailed(MatchError error) {
-        EventCenter.Broadcast(EventType.MENU_OnClientLeaveLobbyFailed,error);
-        CancelMatchmaking();
+        Broadcast(EventType.MENU_OnClientLeaveLobbyFailed,MikroMessage.Create(error));
+        CancelMatchmaking(null);
     }
 
     [TargetRpc]
     private void TargetOnLeaveLobbySuccess() {
-        EventCenter.Broadcast(EventType.MENU_OnClientLeaveLobbySuccess);
-        CancelMatchmaking();
+        Broadcast(EventType.MENU_OnClientLeaveLobbySuccess,null);
+        CancelMatchmaking(null);
     }
 
     [TargetRpc]
     private void TargetOnMatchReadyToGet() {
-        EventCenter.Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet);
+        Broadcast(EventType.MENU_MATCHMAKING_ClientMatchmakingReadyToGet,null);
     }
 
     [TargetRpc]
     private void TargetUpdateCountDown(float countdown) {
-        EventCenter.Broadcast(EventType.MENU_OnClientLobbyCountdownUpdated,countdown);
+        Broadcast(EventType.MENU_OnClientLobbyCountdownUpdated,MikroMessage.Create(countdown));
     }
 
     [TargetRpc]
     private void TargetKicked() {
-        EventCenter.Broadcast(EventType.MENU_OnAuthenticaeteFailed);
+        Broadcast(EventType.MENU_OnAuthenticaeteFailed,null);
         NetworkManager.singleton.StopClient();
     }
 

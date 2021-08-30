@@ -1,10 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using MikroFramework;
+using MikroFramework.Event;
 using Polyglot;
 using UnityEngine;
 using UnityEngine.Events;
+using EventType = MikroFramework.Event.EventType;
 
-public class RootPanel : MonoBehaviour
+public class RootPanel : MikroBehavior
 {
     [SerializeField]
     protected ErrorPanel errorPanel;
@@ -13,19 +17,18 @@ public class RootPanel : MonoBehaviour
 
     void Start()
     {
-        EventCenter.AddListener(EventType.INTERNET_OnInternetConnectionRecover, HandleOnInternetRecovered);
-        EventCenter.AddListener(EventType.INTERNET_OnInternetLostConnection, HandleOnInternetLost);
+        AddListener(EventType.INTERNET_OnInternetConnectionRecover, HandleOnInternetRecovered);
+        AddListener(EventType.INTERNET_OnInternetLostConnection, HandleOnInternetLost);
     }
 
-    void OnDestroy() {
-        EventCenter.RemoveListener(EventType.INTERNET_OnInternetConnectionRecover, HandleOnInternetRecovered);
-        EventCenter.RemoveListener(EventType.INTERNET_OnInternetLostConnection, HandleOnInternetLost);
+    
+
+    protected override void OnBeforeDestroy() { }
+
+    protected virtual void HandleOnInternetRecovered(MikroMessage msg) {
     }
 
-    protected virtual void HandleOnInternetRecovered() {
-    }
-
-    protected virtual void HandleOnInternetLost() {
+    protected virtual void HandleOnInternetLost(MikroMessage msg) {
     }
 
     /// <summary>
@@ -80,11 +83,11 @@ public class RootPanel : MonoBehaviour
     /// Set the error message of the error panel to a specific localized message
     /// </summary>
     /// <param name="localizedMessageId">The localized id of the message</param>
-    public void SetErrorMessage(string localizedMessageId)
+    public void SetErrorMessage(MikroMessage msg)
     {
         if (errorPanel) {
             errorPanel.gameObject.SetActive(true);
-            errorPanel.SetErrorMessage(localizedMessageId);
+            errorPanel.SetErrorMessage(msg.GetSingleMessage().ToString());
         }
     }
 

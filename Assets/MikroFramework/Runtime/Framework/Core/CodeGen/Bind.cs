@@ -4,15 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MikroFramework.Utilities;
-using UnityEditor.Callbacks;
+
 #if UNITY_EDITOR
+using UnityEditor.Callbacks;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
 using UnityEditor;
+using EditorUtility = UnityEditor.EditorUtility;
 #endif
 using UnityEngine;
-using EditorUtility = UnityEditor.EditorUtility;
+
 
 namespace MikroFramework.CodeGen
 {

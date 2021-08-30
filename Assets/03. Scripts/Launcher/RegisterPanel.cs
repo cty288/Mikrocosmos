@@ -1,12 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using MikroFramework;
+using MikroFramework.Event;
 using PlayFab;
 using PlayFab.ClientModels;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using EventType = MikroFramework.Event.EventType;
 
-public class RegisterPanel : MonoBehaviour {
+
+public class RegisterPanel : MikroBehavior {
     
     [SerializeField] 
     private VerifiedInputBox[] items;
@@ -69,17 +73,21 @@ public class RegisterPanel : MonoBehaviour {
                 passwordInputField.text,
                 () => {
                     
-                    EventCenter.Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess);
+                    Broadcast(EventType.LAUNCHER_OnLoginPanelLoginSuccess,null);
                     Debug.Log("Login Success");
                 }, () => {
                     //Register success, but login failed
                     Launcher._instance.CloseInfoPanel();
-                    EventCenter.Broadcast(EventType.LAUNCHER_Error_Message, "LAUNCHER_REGISTER_SUCCESS_LOGIN_FAILED");
+                    Broadcast(EventType.LAUNCHER_Error_Message, MikroMessage.Create("LAUNCHER_REGISTER_SUCCESS_LOGIN_FAILED"));
                 });
            
         }, error => {
             Launcher._instance.CloseInfoPanel();
-            EventCenter.Broadcast(EventType.LAUNCHER_Error_Message, "LAUNCHER_LOGIN_FAILED");
+            Broadcast(EventType.LAUNCHER_Error_Message, MikroMessage.Create("LAUNCHER_LOGIN_FAILED"));
         });
+    }
+
+    protected override void OnBeforeDestroy() {
+        
     }
 }

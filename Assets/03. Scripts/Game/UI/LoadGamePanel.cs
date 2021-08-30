@@ -1,28 +1,26 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MikroFramework.Event;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using EventType = MikroFramework.Event.EventType;
 
 public class LoadGamePanel : RootPanel
 {
     [SerializeField] private LoadingCircle loadingCircle;
 
     void Awake() {
-        EventCenter.AddListener(EventType.GAME_OnClientConnectingToServer,HandleOnConnectingToServer);
-        EventCenter.AddListener(EventType.GAME_OnClientConnectingToServerFailed, HandleOnConnectingToServerFailed);
-        EventCenter.AddListener(EventType.GAME_OnClientConnectingToServerSuccess, HandleOnConnectingToServerSuccess);
-        EventCenter.AddListener<bool>(EventType.GAME_OnClientAuthenticated,HandleOnClientAuthenticated);
+        AddListener(EventType.GAME_OnClientConnectingToServer,HandleOnConnectingToServer);
+        AddListener(EventType.GAME_OnClientConnectingToServerFailed, HandleOnConnectingToServerFailed);
+        AddListener(EventType.GAME_OnClientConnectingToServerSuccess, HandleOnConnectingToServerSuccess);
+        AddListener(EventType.GAME_OnClientAuthenticated,HandleOnClientAuthenticated);
     }
 
-    void OnDestroy() {
-        EventCenter.RemoveListener(EventType.GAME_OnClientConnectingToServer, HandleOnConnectingToServer);
-        EventCenter.RemoveListener(EventType.GAME_OnClientConnectingToServerFailed, HandleOnConnectingToServerFailed);
-        EventCenter.RemoveListener(EventType.GAME_OnClientConnectingToServerSuccess, HandleOnConnectingToServerSuccess);
-        EventCenter.RemoveListener<bool>(EventType.GAME_OnClientAuthenticated, HandleOnClientAuthenticated);
-    }
+  
 
-    private void HandleOnClientAuthenticated(bool isSuccess) {
+    private void HandleOnClientAuthenticated(MikroMessage msg) {
+        bool isSuccess = (bool) msg.GetSingleMessage();
         if (isSuccess) {
             Debug.Log("Load Game Panel: Authenticate success");
         }
@@ -31,20 +29,20 @@ public class LoadGamePanel : RootPanel
         }
     }
 
-    private void HandleOnConnectingToServer() {
+    private void HandleOnConnectingToServer(MikroMessage msg) {
         StartLoadingCircle(true,true, "MENU_ENTER_GAME_LOADING");
     }
 
-    private void HandleOnConnectingToServerFailed() {
+    private void HandleOnConnectingToServerFailed(MikroMessage msg) {
         SetErrorMessage("MENU_ENTER_GAME_Failed", BackToMenu, "MENU_RETURN_TO_MENU_BUTTON");
     }
 
-    private void HandleOnConnectingToServerSuccess() {
+    private void HandleOnConnectingToServerSuccess(MikroMessage msg) {
         StopLoadingCircle();
     }
 
     private void BackToMenu() {
-        HandleOnConnectingToServer();
+        HandleOnConnectingToServer(null);
         SceneManager.LoadSceneAsync("Menu");
     }
 

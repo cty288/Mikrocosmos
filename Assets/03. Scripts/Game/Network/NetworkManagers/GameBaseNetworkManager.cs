@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
+using MikroFramework.Event;
 using Mirror;
 using UnityEngine;
+using EventType = MikroFramework.Event.EventType;
 
 
 public class GameBaseNetworkManager : NetworkManager {
@@ -68,7 +70,7 @@ public class GameBaseNetworkManager : NetworkManager {
             }
 #else
         NetworkConnector._singleton.ConnectToServer(PlayerPrefs.GetString("ip"),
-                (ushort)PlayerPrefs.GetInt("port"), OnJoiningGameServer, OnJoinGameServerFailed, 1.5f, 2f, 60);
+                 (ushort)PlayerPrefs.GetInt("port"), OnJoiningGameServer, OnJoinGameServerFailed, 1.5f, 2f, 60);
 #endif
     }
     
@@ -89,8 +91,8 @@ public class GameBaseNetworkManager : NetworkManager {
     public override void OnStartServer() {
         base.OnStartServer();
         existingPlayers = new List<GamePlayer>();
-        EventCenter.AddListener<GamePlayer>(EventType.GAME_ServerOnPlayerConnected, AuthenticatePlayer);
-        EventCenter.AddListener<GamePlayer>(EventType.GAME_ServerOnPlayerDisconnected, RemovePlayer);
+        AddListener(EventType.GAME_ServerOnPlayerConnected, AuthenticatePlayer);
+        AddListener(EventType.GAME_ServerOnPlayerDisconnected, RemovePlayer);
         StartCoroutine(StartMonitoringPlayerNum());
     }
     /// <summary>
@@ -98,8 +100,8 @@ public class GameBaseNetworkManager : NetworkManager {
     /// </summary>
     public override void OnStopServer() {
         base.OnStopServer();
-        EventCenter.RemoveListener<GamePlayer>(EventType.GAME_ServerOnPlayerConnected, AuthenticatePlayer);
-        EventCenter.RemoveListener<GamePlayer>(EventType.GAME_ServerOnPlayerDisconnected, RemovePlayer);
+        RemoveListener(EventType.GAME_ServerOnPlayerConnected, AuthenticatePlayer);
+        RemoveListener(EventType.GAME_ServerOnPlayerDisconnected, RemovePlayer);
     }
 
     [ServerCallback]
@@ -126,7 +128,9 @@ public class GameBaseNetworkManager : NetworkManager {
 
 
     [ServerCallback]
-    private void RemovePlayer(GamePlayer player) {
+    private void RemovePlayer(MikroMessage msg) {
+        GamePlayer player = msg.GetSingleMessage() as GamePlayer;
+        
         //check if the player exists in the matchPlayerInfos first
         PlayerTeamInfo playerTeamInfo = FindPlayerTeamInfo(player);
         if (playerTeamInfo != null) {
@@ -156,7 +160,9 @@ public class GameBaseNetworkManager : NetworkManager {
     /// </summary>
     /// <param name="player"></param>
     [ServerCallback]
-    private void AuthenticatePlayer(GamePlayer player) {
+    private void AuthenticatePlayer(MikroMessage msg) {
+        GamePlayer player = msg.GetSingleMessage() as GamePlayer;
+        
         PlayerTeamInfo playerInfo = FindPlayerTeamInfo(player);
 
         if (playerInfo!=null) {
@@ -181,16 +187,16 @@ public class GameBaseNetworkManager : NetworkManager {
 
     #region Client
 
-    private void OnJoinGameServerFailed()
+    private void OnJoinGameServerFailed(MikroMessage msg)
     {
         Debug.Log("Join server failed");
-        EventCenter.Broadcast(EventType.GAME_OnClientConnectingToServerFailed);
+        Broadcast(EventType.GAME_OnClientConnectingToServerFailed,null);
     }
 
     [Client]
-    private void OnJoiningGameServer()
+    private void OnJoiningGameServer(MikroMessage msg)
     {
-        EventCenter.Broadcast(EventType.GAME_OnClientConnectingToServer);
+        Broadcast(EventType.GAME_OnClientConnectingToServer,null);
     }
 
     #endregion

@@ -1,16 +1,12 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using MikroFramework.Event;
 using PlayFab;
 using PlayFab.ClientModels;
-using PlayFab.ProfilesModels;
-using Polyglot;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using EventType = MikroFramework.Event.EventType;
+
 
 public class Launcher : RootPanel {
     //TODO: auto login (session ticket save)
@@ -42,15 +38,11 @@ public class Launcher : RootPanel {
         panelButtons[SearchButtonIndex("Settings Button")].onClick.AddListener(OnSettingsButtonClicked);
         panelButtons[SearchButtonIndex("Login Button")].onClick.AddListener(OnLoginButtonClicked);
 
-        EventCenter.AddListener(EventType.LAUNCHER_OnLoginPanelLoginSuccess,OpenGame);
-        EventCenter.AddListener<string>(EventType.LAUNCHER_Error_Message, SetErrorMessage);
+        AddListener(EventType.LAUNCHER_OnLoginPanelLoginSuccess,OpenGame);
+        AddListener(EventType.LAUNCHER_Error_Message, SetErrorMessage);
     }
 
-    void OnDestroy() {
-        EventCenter.RemoveListener(EventType.LAUNCHER_OnLoginPanelLoginSuccess, OpenGame);
-        EventCenter.RemoveListener<string>(EventType.LAUNCHER_Error_Message, SetErrorMessage);
-    }
-
+  
     private void OnRegisterButtonClicked() {
         SelectPanel(SearchButtonIndex("Register Button"));
     }
@@ -100,11 +92,11 @@ public class Launcher : RootPanel {
 
 
 
-    protected override void HandleOnInternetRecovered() {
+    protected override void HandleOnInternetRecovered(MikroMessage msg) {
         noInternetPanel.SetActive(false);
     }
 
-    protected override void HandleOnInternetLost() {
+    protected override void HandleOnInternetLost(MikroMessage msg) {
         noInternetPanel.SetActive(true);
     }
 
@@ -140,17 +132,15 @@ public class Launcher : RootPanel {
             if (!loginCancelled) {
                 SaveLoginToken(result.SessionTicket, result.EntityToken.Entity.Id, username,pwd,
                     () => {
-                        EventCenter.Broadcast(EventType.LAUNCHER_OnPlayFabLoginSuccess);
+                        Broadcast(EventType.LAUNCHER_OnPlayFabLoginSuccess,null);
                         infoPanel.DisableCloseButton();
                     }, () => {
-                        EventCenter.Broadcast(EventType.LAUNCHER_OnPlayFabLoginFailed,
-                             new PlayFabError { Error = PlayFabErrorCode.ConnectionError});
+                        Broadcast(EventType.LAUNCHER_OnPlayFabLoginFailed, MikroMessage.Create(new PlayFabError { Error = PlayFabErrorCode.ConnectionError }));
                     });
             }
         }, error => {
             //onPlayfabLoginFailed?.Invoke(error);
-            EventCenter.Broadcast
-                <PlayFabError>(EventType.LAUNCHER_OnPlayFabLoginFailed,error);
+           Broadcast(EventType.LAUNCHER_OnPlayFabLoginFailed,MikroMessage.Create(error));
         });
     }
 
@@ -158,7 +148,7 @@ public class Launcher : RootPanel {
     /// <summary>
     /// Open the main game
     /// </summary>
-    public void OpenGame()
+    public void OpenGame(MikroMessage msg)
     {
         PlayfabTokenPasser._instance.SaveToken(PlayerPrefs.GetString("Session_Ticket"),
             PlayerPrefs.GetString("Entity_Id"),

@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+[Obsolete]
 public static class EventCenter
 {
     private static Dictionary<EventType, Delegate> eventTable = new Dictionary<EventType, Delegate>();
+
     /// <summary>
     /// Add a listener to the corresponding event type, which must have at least one callback function
     /// </summary>

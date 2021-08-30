@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
 using System;
+using MikroFramework.Event;
+using EventType = MikroFramework.Event.EventType;
 public enum MatchError {
     UnableToFindMatch,
     MatchAlreadyStart,
@@ -24,14 +26,10 @@ public class MatchManager : NetworkBehaviour {
 
     [ServerCallback]
     private void Start() {
-        EventCenter.AddListener<GameMatch>(EventType.MENU_OnServerMatchStartingProcess,HandleOnMatchStartingProcess);
-        EventCenter.AddListener<GameMatch>(EventType.GAME_OnMatchExited, HandleOnMatchExited);
+        AddListener(EventType.MENU_OnServerMatchStartingProcess,HandleOnMatchStartingProcess);
+        AddListener(EventType.GAME_OnMatchExited, HandleOnMatchExited);
     }
 
-    private void OnDestroy() {
-        EventCenter.RemoveListener<GameMatch>(EventType.MENU_OnServerMatchStartingProcess, HandleOnMatchStartingProcess);
-        EventCenter.RemoveListener<GameMatch>(EventType.GAME_OnMatchExited, HandleOnMatchExited);
-    }
     /// <summary>
     /// Return an available game match
     /// </summary>
@@ -147,13 +145,16 @@ public class MatchManager : NetworkBehaviour {
         return false;
     }
 
-    private void HandleOnMatchStartingProcess(GameMatch match) {
+    private void HandleOnMatchStartingProcess(MikroMessage msg) {
+        GameMatch match = msg.GetSingleMessage() as GameMatch;
+        
         unStartedMatchList.Remove(match);
         startedMatchList.Add(match);
     }
 
-    private void HandleOnMatchExited(GameMatch match)
-    {
+    private void HandleOnMatchExited(MikroMessage msg) {
+        GameMatch match = msg.GetSingleMessage() as GameMatch;
+
         if (startedMatchList.Contains(match))
         {
             startedMatchList.Remove(match);

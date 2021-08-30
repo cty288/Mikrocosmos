@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MikroFramework;
 using UnityEngine;
+using EventType = MikroFramework.Event.EventType;
 
-public class InternetConnectivityChecker : MonoBehaviour {
+public class InternetConnectivityChecker : MikroBehavior {
     public static InternetConnectivityChecker _instance;
 
     [SerializeField] [Tooltip("If this is empty, the checker will only check whether the network is reachable via WiFi/cable/Carrier; otherwise, the checker will only" +
@@ -39,10 +41,10 @@ public class InternetConnectivityChecker : MonoBehaviour {
         if (lastConnectivity != hasConnectivity) {
             lastConnectivity = hasConnectivity;
             if (hasConnectivity) {
-                EventCenter.Broadcast(EventType.INTERNET_OnInternetConnectionRecover);
+                Broadcast(EventType.INTERNET_OnInternetConnectionRecover,null);
             }
             else {
-                EventCenter.Broadcast(EventType.INTERNET_OnInternetLostConnection);
+                Broadcast(EventType.INTERNET_OnInternetLostConnection,null);
             }
         }
 
@@ -73,5 +75,9 @@ public class InternetConnectivityChecker : MonoBehaviour {
         else {
             hasConnectivity = true;
         }
+    }
+
+    protected override void OnBeforeDestroy() {
+        
     }
 }
