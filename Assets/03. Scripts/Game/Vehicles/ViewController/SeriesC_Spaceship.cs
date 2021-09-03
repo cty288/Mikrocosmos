@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Mirror;
 using UnityEngine;
 
 
@@ -13,8 +14,14 @@ public class SeriesC_Spaceship : Spaceship {
         return "";
     }
 
-
-    public override void Move() {
+    [ClientCallback]
+    protected override void ClientInit() {
         
+    }
+
+
+    [ServerCallback]
+    protected override void ServerInit() {
+
     }
 }
