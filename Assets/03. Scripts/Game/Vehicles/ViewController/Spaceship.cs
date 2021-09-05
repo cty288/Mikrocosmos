@@ -10,7 +10,7 @@ public abstract class Spaceship : Vehicle {
     
     protected override void Awake() {
         base.Awake();
-        vehicleModel = GetComponent<SpaceshipModel>();
+       // vehicleModel = GetComponent<SpaceshipModel>();
        // Debug.Log("awake!!!");
     }
 

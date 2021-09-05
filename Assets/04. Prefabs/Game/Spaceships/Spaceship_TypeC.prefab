@@ -12,11 +12,11 @@ GameObject:
   - component: {fileID: 7042524970727060148}
   - component: {fileID: 7032705936622222832}
   - component: {fileID: -3983079715632000578}
-  - component: {fileID: 1641579462897594023}
   - component: {fileID: 2804540209458357389}
   - component: {fileID: 808710484277157206}
   - component: {fileID: 6593225802458250778}
   - component: {fileID: 8645676149551980304}
+  - component: {fileID: -8756218236414345531}
   m_Layer: 0
   m_Name: Spaceship_TypeC
   m_TagString: Untagged
@@ -104,20 +104,6 @@ MonoBehaviour:
   visible: 0
   m_AssetId: 
   hasSpawned: 0
---- !u!114 &1641579462897594023
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7047572261211661110}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df205ff994fafce42aa90c18fd368526, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
 --- !u!114 &2804540209458357389
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -184,3 +170,16 @@ MonoBehaviour:
   interpolateRotation: 1
   interpolatePosition: 1
   syncScale: 1
+--- !u!114 &-8756218236414345531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7047572261211661110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5f870245e7796642b3a38ae058342c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Pool: {fileID: 0}

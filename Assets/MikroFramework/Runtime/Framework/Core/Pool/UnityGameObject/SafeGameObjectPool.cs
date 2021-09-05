@@ -14,10 +14,12 @@ namespace MikroFramework.Pool
     //TODO: add extension
     public class SafeGameObjectPool:GameObjectPool {
 
-        private int initCount = 0;
-        private int maxCount = 50;
+        [SerializeField]
+        protected int initCount = 0;
+        [SerializeField]
+        protected int maxCount = 50;
 
-        private Queue<GameObject> destroyedObjectInQueue;
+        protected Queue<GameObject> destroyedObjectInQueue;
 
         private int numHiddenObjectCreating = 0;
 

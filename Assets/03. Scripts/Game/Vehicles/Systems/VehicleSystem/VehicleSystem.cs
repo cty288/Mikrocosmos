@@ -10,7 +10,7 @@ public interface IVehicleSystem:ISystem {
 
 }
 
-public class VehicleSystem : AbstractNetworkedSystem, IVehicleSystem, ISingleton {
+public partial class VehicleSystem : AbstractNetworkedSystem, IVehicleSystem, ISingleton {
     
 
     public static VehicleSystem Singleton {
@@ -24,10 +24,10 @@ public class VehicleSystem : AbstractNetworkedSystem, IVehicleSystem, ISingleton
         
     }
 
-    [ClientCallback]
-    protected override void OnClientInit() {
-        
-    }
+    [Command]
+    private void CmdCreateNewVehicle(VehicleType vehicleType, int id) {
+
+    } 
 
     void ISingleton.OnSingletonInit() { }
 }

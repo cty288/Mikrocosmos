@@ -5,28 +5,26 @@ using MikroFramework.Architecture;
 using Mirror;
 using UnityEngine;
 
-public class VehicleModel:NetworkBehaviour {
-    [SyncVar]
+public class VehicleModel {
+
     private int Id;
     
-    [SyncVar]
+
     private string Name;
 
-    [SyncVar]
+
     private float speed;
     public float Speed=> speed;
 
-    [SyncVar]
+
     private float Acceleration;
 
-    [SyncVar]
+
     private float MaxAcceleration=2f;
     
-    [SyncVar]
+
     private float Hp;
 
-
-    [ServerCallback]
     public void AddAcceleration(float addAmount) {
         Acceleration += addAmount;
         if (Acceleration > MaxAcceleration)
@@ -35,8 +33,8 @@ public class VehicleModel:NetworkBehaviour {
         }
     }
 
-    [ServerCallback]
+    /*
     private void Update() {
         speed += Acceleration;
-    }
+    }*/
 }

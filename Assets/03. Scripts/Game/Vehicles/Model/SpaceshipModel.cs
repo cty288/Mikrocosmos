@@ -5,8 +5,7 @@ using UnityEngine;
 
 public class SpaceshipModel : VehicleModel
 {
-    [SyncVar]
     protected float attack;
-    [SyncVar]
+
     protected float angularSpeed;
 }
