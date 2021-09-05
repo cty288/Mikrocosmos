@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MikroFramework;
 using Mirror;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ public class PoolTester : NetworkBehaviour {
         }
 
         if (Input.GetKeyDown(KeyCode.S)) {
-            pool.Recycle(gos[0]);
+            GameObjectPoolManager.Singleton.Recycle(gos[0]);
             NetworkServer.UnSpawn(gos[0]);
             gos.RemoveAt(0);
         }

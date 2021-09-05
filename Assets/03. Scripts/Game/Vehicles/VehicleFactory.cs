@@ -8,6 +8,12 @@ using Mirror;
 using UnityEngine;
 
 public class VehicleFactory{
+    /// <summary>
+    /// Create and spawn a vehicle on the server
+    /// </summary>
+    /// <param name="vehicleType"></param>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public static GameObject CreateVehicle(VehicleType vehicleType, int id) {
         ResLoader resLoader = new ResLoader();
         GameObject spawnedGameObject = null;
@@ -15,9 +21,7 @@ public class VehicleFactory{
         switch (vehicleType) {
             case VehicleType.Spaceship:
                 if (id == (int) SpaceshipType.SeriesC) {
-                    spawnedGameObject =GameObject.Instantiate(resLoader.LoadSync<GameObject>("Spaceship_TypeC"));
-
-                    NetworkServer.Spawn(spawnedGameObject);
+                    spawnedGameObject = GameEntrance.Singleton.POOL_SeriesC.Allocate();
                     return spawnedGameObject;
                 }
                 break;
