@@ -2,11 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MikrocosmosNewDatabase;
 using MikroFramework.Event;
 using MikroFramework.Managers;
 using MikroFramework.Pool;
 using MikroFramework.Singletons;
-using MikroNHibernateCore;
 using NHibernate;
 using NHibernate.Criterion;
 using UnityEngine;
@@ -55,7 +55,9 @@ namespace MikroFramework.DatabaseKit.NHibernate
                     {
                         ICriteria criteria = session.CreateCriteria(typeof(T));
 
-                        return await criteria.ListAsync<T>();
+                        IList<T> result = await criteria.ListAsync<T>();
+                       
+                        return result;
                     }
                 }
             }

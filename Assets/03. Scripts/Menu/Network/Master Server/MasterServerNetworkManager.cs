@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using MikrocosmosDatabase;
+
 using MikroFramework.Event;
 using Mirror;
 using UnityEngine;
@@ -73,7 +73,6 @@ public class MasterServerNetworkManager : NetworkManager {
     [Server]
     private void InitializeServerOnlyObjs() {
         matchManager= MirrorServerUtilities.SpawnServerOnlyObject<MatchManager>("Match Manager").GetComponent<MatchManager>();
-        MirrorServerUtilities.SpawnServerOnlyObject<NHibernateHelper>("Nihbernate Helper");
         MirrorServerUtilities.SpawnServerOnlyObject<MenuServerDatabaseManager>("Menu Database Manager");
     }
 

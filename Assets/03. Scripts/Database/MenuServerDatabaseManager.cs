@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using MikrocosmosDatabase;
+using MikrocosmosNewDatabase;
+using MikroFramework.DatabaseKit.NHibernate;
 using UnityEngine;
 
 public class MenuServerDatabaseManager : ServerDatabaseManager
@@ -13,13 +14,13 @@ public class MenuServerDatabaseManager : ServerDatabaseManager
     public async void AddMatchIdToDatabase(PlayerTeamInfo teamInfo, string matchId)
     {
         string displayName = teamInfo.DisplayName;
-        Player searchedPlayer = await playerTableManager.SearchByDisplayName(displayName);
+        Player searchedPlayer = await NHibernateTableManager<Player>.Singleton.SearchByDisplayName(displayName);
 
         if (searchedPlayer != null)
         {
             searchedPlayer.JoinedMatchid = matchId;
 
-            bool result = await playerTableManager.Update(searchedPlayer);
+            bool result = await NHibernateTableManager<Player>.Singleton.Update(searchedPlayer);
 
             if (result)
                 Debug.Log($"[ServerDatabaseManager] Successfully updated {matchId} to {displayName}'s data on the database!");

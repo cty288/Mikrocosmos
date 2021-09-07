@@ -6,20 +6,19 @@ using UnityEngine;
 
 public class SpaceshipAccelerateCommand : AbstractCommand<SpaceshipAccelerateCommand> {
     public SpaceshipModel SpaceshipModel;
-    public float accelerateAmount = 0;
+    public bool accelerate = true;
 
-    public static SpaceshipAccelerateCommand Allocate(SpaceshipModel spaceshipModel, float addAmount) {
+    public static SpaceshipAccelerateCommand Allocate(SpaceshipModel spaceshipModel,bool accelerate) {
         SpaceshipAccelerateCommand spaceshipAccelerateCommand =
             SafeObjectPool<SpaceshipAccelerateCommand>.Singleton.Allocate();
 
         spaceshipAccelerateCommand.SpaceshipModel = spaceshipModel;
-        spaceshipAccelerateCommand.accelerateAmount = addAmount;
+        spaceshipAccelerateCommand.accelerate = accelerate;
 
         return spaceshipAccelerateCommand;
     }
 
     protected override void OnExecute() {
-        //Debug.Log(SpaceshipModel==null);
-        SpaceshipModel.AddAcceleration(accelerateAmount);
+        SpaceshipModel.Accelerate(accelerate);
     }
 }

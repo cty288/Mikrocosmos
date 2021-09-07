@@ -20,8 +20,16 @@ public class VehicleFactory{
 
         switch (vehicleType) {
             case VehicleType.Spaceship:
+                SpaceshipConfigModel configModel=SpaceshipConfigModel.Singleton;
+                IEnumerator<SpaceshipConfig> spaceshipConfigEnumerator = configModel.IdIndex.Get(id).GetEnumerator();
+                spaceshipConfigEnumerator.MoveNext();
+                SpaceshipConfig currentSpaceshipConfig = spaceshipConfigEnumerator.Current;
+                Debug.Log(currentSpaceshipConfig.Name);
+
                 if (id == (int) SpaceshipType.SeriesC) {
                     spawnedGameObject = GameEntrance.Singleton.POOL_SeriesC.Allocate();
+                    SpaceshipModel model = CreateSpaceshipModel(currentSpaceshipConfig);
+                    spawnedGameObject.GetComponent<Spaceship>().SetVehicleModel(model);
                     return spawnedGameObject;
                 }
                 break;
@@ -29,5 +37,33 @@ public class VehicleFactory{
                 break;
         }
         return null;
+    }
+
+    private static SpaceshipModel CreateSpaceshipModel(SpaceshipConfig currentSpaceshipConfig) {
+        SpaceshipModel model = new SpaceshipModel()
+        {
+            ForwardAcceleration = currentSpaceshipConfig.ForwardAcceleration,
+            MaxForwardSpeed = currentSpaceshipConfig.MaxForwardSpeed,
+            ForwardDamp = currentSpaceshipConfig.ForwardDamp,
+
+            MaxAngularSpeed = currentSpaceshipConfig.MaxAngularSpeed,
+            AngularAcceleration = currentSpaceshipConfig.AngularAcceleration,
+            AngularDamp = currentSpaceshipConfig.AngularDamp,
+
+            MaxUpSpeed = currentSpaceshipConfig.MaxUpSpeed,
+            UpAcceleration = currentSpaceshipConfig.UpAcceleration,
+            UpDamp = currentSpaceshipConfig.UpDamp,
+           
+            attack = currentSpaceshipConfig.Attack,
+            Id = currentSpaceshipConfig.Id,
+            MaxHp = currentSpaceshipConfig.MaxHp,
+            Name = currentSpaceshipConfig.Name,
+
+            UpAngle = currentSpaceshipConfig.UpAngle,
+            RotateAngle = currentSpaceshipConfig.RotateAngle,
+            AngleInterpolate = currentSpaceshipConfig.AngleInterpolate
+        };
+
+        return model;
     }
 }

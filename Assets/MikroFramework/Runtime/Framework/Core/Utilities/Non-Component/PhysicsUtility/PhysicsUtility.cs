@@ -20,5 +20,22 @@ namespace MikroFramework.Utilities
             int objLayerMask = 1 << obj.layer;
             return (layerMask.value & objLayerMask) > 0;
         }
+
+        /// <summary>
+        /// Move the rigidibody forward (relative to itself) by setting its velocity
+        /// </summary>
+        /// <param name="rigidbody"></param>
+        /// <param name="speed"></param>
+        public static void RigidbodyMoveForward(Rigidbody rigidbody, float speed) {
+            var locVel = rigidbody.transform.InverseTransformDirection(rigidbody.velocity);
+            locVel.z = speed;
+            rigidbody.velocity = rigidbody.transform.TransformDirection(locVel);
+        }
+
+        public static void RigidbodyMoveUpward(Rigidbody rigidbody, float speed) {
+            var locVel = rigidbody.transform.InverseTransformDirection(rigidbody.velocity);
+            locVel.y = speed;
+            rigidbody.velocity = rigidbody.transform.TransformDirection(locVel);
+        }
     }
 }

@@ -7,34 +7,32 @@ using UnityEngine;
 
 public class VehicleModel {
 
-    private int Id;
-    
+    public int Id;
 
-    private string Name;
+    public string Name;
 
-
-    private float speed;
-    public float Speed=> speed;
-
-
-    private float Acceleration;
+    public float ForwardSpeed;
+    public float MaxForwardSpeed;
+    public float ForwardAcceleration;
+    public float ForwardDamp;
 
 
-    private float MaxAcceleration=2f;
-    
+    public int Hp;
 
-    private float Hp;
+    public int MaxHp;
 
-    public void AddAcceleration(float addAmount) {
-        Acceleration += addAmount;
-        if (Acceleration > MaxAcceleration)
-        {
-            Acceleration = MaxAcceleration;
+
+    public void Accelerate(bool speedUp) {
+        int direction = speedUp ? 1 : -1;
+
+        if (direction > float.Epsilon || direction < -float.Epsilon) {
+            ForwardSpeed = Mathf.Lerp(ForwardSpeed, ForwardSpeed + ForwardAcceleration * direction, Time.deltaTime);
         }
-    }
+        else {
+            ForwardSpeed = Mathf.Lerp(ForwardSpeed, 0, ForwardDamp * Time.deltaTime);
+        }
+      
+        ForwardSpeed = Mathf.Clamp(ForwardSpeed, 0, MaxForwardSpeed);
 
-    /*
-    private void Update() {
-        speed += Acceleration;
-    }*/
+    }
 }

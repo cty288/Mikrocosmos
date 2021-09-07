@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using MikroFramework.Architecture;
 using MikroFramework.DataStructures;
 using MikroFramework.Singletons;
-using MikroNHibernateCore;
 using Mirror;
 using UnityEngine;
 
@@ -25,11 +24,13 @@ public partial class VehicleSystem : AbstractNetworkedSystem, IVehicleSystem, IS
         
     }
 
-    [Command]
-    private void CmdCreateNewVehicle(VehicleType vehicleType, int id) {
+    [Command(requiresAuthority = false)]
+    private void CmdCreateNewVehicle(VehicleType vehicleType, int id, NetworkConnectionToClient connection ) {
         GameObject createdVehicle = VehicleFactory.CreateVehicle(vehicleType, id);
-        NetworkServer.Spawn(createdVehicle);
-        
+
+        NetworkServer.Spawn(createdVehicle,connection);
+
+        TargetSpaceshipCreated(connection,createdVehicle);
     } 
 
     void ISingleton.OnSingletonInit() { }
