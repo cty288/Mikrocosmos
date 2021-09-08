@@ -8,7 +8,8 @@ public class SpaceshipModel : VehicleModel
 {
     public float attack;
 
-    public float AngularSpeed;
+    public Vector3 AngularVelocity;
+
     public float MaxAngularSpeed;
     public float AngularAcceleration;
     public float AngularDamp;
@@ -18,24 +19,25 @@ public class SpaceshipModel : VehicleModel
     public float UpAcceleration;
     public float UpDamp;
 
-    public float CurrentRotateAngle;
+    public Vector3 CurrentRotateAngle;
+
     public float UpAngle;
     public float RotateAngle;
     public float AngleInterpolate;
 
 
 
-    public void AddAngularSpeed(float sign) {
-        if (sign > float.Epsilon || sign < -float.Epsilon) {
-            AngularSpeed += AngularAcceleration * sign * Time.deltaTime;
+    public void AddAngularVelocity(Vector3 direction) {
+        if (direction.sqrMagnitude>float.Epsilon) {
+            AngularVelocity +=  AngularAcceleration * direction * Time.deltaTime;
         }
         else {
-            AngularSpeed = Mathf.Lerp(AngularSpeed, 0, AngularDamp * Time.deltaTime);
+            AngularVelocity = Vector3.Lerp(AngularVelocity, Vector3.zero, AngularDamp * Time.deltaTime);
         }
         
-        AngularSpeed = Mathf.Clamp(AngularSpeed, -MaxAngularSpeed, MaxAngularSpeed);
+        AngularVelocity = Vector3.ClampMagnitude(AngularVelocity, MaxAngularSpeed);
 
-        CurrentRotateAngle = CurrentRotateAngle + AngularSpeed*Time.deltaTime;
+        CurrentRotateAngle += AngularVelocity *Time.deltaTime;
 
     }
 

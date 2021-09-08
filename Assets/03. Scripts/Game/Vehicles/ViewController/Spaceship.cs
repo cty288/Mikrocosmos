@@ -24,12 +24,13 @@ public abstract class Spaceship : Vehicle {
         vehicleModel.Accelerate(accelerate);
     }
 
-    [Command]
-    private void CmdYawRotate(float axis) {
-        rotateAxis = axis;
-        (vehicleModel as SpaceshipModel).AddAngularSpeed(axis);
 
+    [Command]
+    private void CmdRotateControl(Vector3 direction) {
+        rotateAxis = direction.y;
+        (vehicleModel as SpaceshipModel).AddAngularVelocity(direction);
     }
+
 
     [Command]
     private void CmdUpDown(float axis) {
@@ -43,9 +44,10 @@ public abstract class Spaceship : Vehicle {
     public override void ServerMoveControl() {
         SpaceshipModel model = vehicleModel as SpaceshipModel;
 
-        rigidbody.MoveRotation(Quaternion.Lerp(transform.rotation, Quaternion.Euler(0,
-            model.CurrentRotateAngle, 0), model.AngularDamp * Time.deltaTime));
+        rigidbody.MoveRotation(Quaternion.Lerp(transform.rotation, Quaternion.Euler(model.CurrentRotateAngle),
+            model.AngularDamp * Time.deltaTime));
 
+        
         //var moveDirection = transform.up * model.UpSpeed + transform.forward * model.ForwardSpeed;
         //rigidbody.MovePosition(transform.position + moveDirection*Time.deltaTime);
 
@@ -68,18 +70,13 @@ public abstract class Spaceship : Vehicle {
     [Client]
     public override void ClientMoveControl() {
         if (hasAuthority) {
-            ClientYawRotateControl();
             ClientAccelerateControl();
             ClientUpDownControl();
+            ClientRotateControl();
         }
     }
 
-    [Client]
-    private void ClientYawRotateControl() {
-        float rotateAxis = GetAxis(GameControlSettings.KEY_RIGHT,GameControlSettings.KEY_LEFT);
-        CmdYawRotate(rotateAxis);
-        
-    }
+  
 
     [Client]
     private void ClientAccelerateControl() {
@@ -94,5 +91,36 @@ public abstract class Spaceship : Vehicle {
         CmdUpDown(axis);
     }
 
+
+    [Client]
+    private void ClientRotateControl() {
+        
+
+        float yawRotateAxis = GetAxis(GameControlSettings.KEY_RIGHT, GameControlSettings.KEY_LEFT);
+        
+        float rollAxis = 0;
+        if (Input.mousePosition.x >= Screen.width)
+        {
+            rollAxis = -6;
+        }
+        else if (Input.mousePosition.x <= 0)
+        {
+            rollAxis = 6;
+        }
+
+        float pitchAxis = 0;
+        if (Input.mousePosition.y >= Screen.height)
+        {
+            pitchAxis = -6;
+        }
+        else if (Input.mousePosition.y <= 0)
+        {
+            pitchAxis = 6;
+        }
+
+        Vector3 direction = new Vector3(pitchAxis, yawRotateAxis, rollAxis);
+        CmdRotateControl(direction);
+    }
+    
 
 }

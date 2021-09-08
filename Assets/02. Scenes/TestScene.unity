@@ -1378,7 +1378,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33d2b7f02530440181a1285c968f24ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pooledPrefab: {fileID: 7047572261211661110, guid: 12f7ae2db916de647b888f4e85d77030, type: 3}
+  pooledPrefab: {fileID: 5222380863383735013, guid: b248bd827674e3c40a5b378492b12530, type: 3}
   initCount: 20
   maxCount: 50
   NumObjInitPerFrame: 10
@@ -1604,6 +1604,7 @@ GameObject:
   - component: {fileID: 1460301094}
   - component: {fileID: 1460301093}
   - component: {fileID: 1460301092}
+  - component: {fileID: 1460301095}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1676,6 +1677,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1460301095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1460301091}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24b538b3d0a2ff748b1394ffbdb5b580, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Target: {fileID: 0}
+  Offset: {x: 0.5, y: 14.08, z: -33.95}
+  speed: 4
 --- !u!1 &2115005057
 GameObject:
   m_ObjectHideFlags: 0
