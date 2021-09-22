@@ -58,6 +58,13 @@ public abstract class Spaceship : Vehicle {
 
     }
 
+    [ServerCallback]
+    private void OnCollisionEnter(Collision other) {
+        SpaceshipModel model = vehicleModel as SpaceshipModel;
+        model.UpSpeed *= -1;
+        model.ForwardSpeed *= -1;
+        model.AngularVelocity *= -1;
+    }
 
     [ServerCallback]
     private void ServerRollPitch(SpaceshipModel model) {
