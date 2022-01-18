@@ -69,7 +69,7 @@ namespace MikroFramework.Architecture
         public void RegisterModel<T>(T model) where T : IModel {
             model.SetArchitecture(this);
             container.RegisterInstance<T>(model);
-
+            
             if (!inited) {
                 models.Add(model);
             }
@@ -144,6 +144,11 @@ namespace MikroFramework.Architecture
 
         public void UnRegisterEvent<T>(Action<T> onEvent) {
             typeEventSystem.UnRegister<T>(onEvent);
+        }
+
+        public TResult SendQuery<TResult>(IQuery<TResult> query) {
+            query.SetArchitecture(this);
+            return query.Do();
         }
 
         /// <summary>

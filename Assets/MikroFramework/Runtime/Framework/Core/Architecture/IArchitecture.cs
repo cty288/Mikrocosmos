@@ -92,5 +92,8 @@ namespace MikroFramework.Architecture
         /// <param name="onEvent"></param>
         void UnRegisterEvent<T>(Action<T> onEvent);
 
+
+        TResult SendQuery<TResult>(IQuery<TResult> query);
+
     }
 }
