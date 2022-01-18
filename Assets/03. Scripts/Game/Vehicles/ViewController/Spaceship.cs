@@ -21,56 +21,56 @@ public abstract class Spaceship : Vehicle {
 
     [Command]
     private void CmdAccelerateControl(bool accelerate) {
-        vehicleModel.Accelerate(accelerate);
+        VehicleItem.Accelerate(accelerate);
     }
 
 
     [Command]
     private void CmdRotateControl(Vector3 direction) {
         rotateAxis = direction.y;
-        (vehicleModel as SpaceshipModel).AddAngularVelocity(direction);
+        (VehicleItem as SpaceshipItem).AddAngularVelocity(direction);
     }
 
 
     [Command]
     private void CmdUpDown(float axis) {
         upAxis = axis;
-        (vehicleModel as SpaceshipModel).AddUpDownSpeed(axis);
+        (VehicleItem as SpaceshipItem).AddUpDownSpeed(axis);
     }
 
 
 
     [ServerCallback]
     public override void ServerMoveControl() {
-        SpaceshipModel model = vehicleModel as SpaceshipModel;
+        SpaceshipItem item = VehicleItem as SpaceshipItem;
 
-        rigidbody.MoveRotation(Quaternion.Lerp(transform.rotation, Quaternion.Euler(model.CurrentRotateAngle),
-            model.AngularDamp * Time.deltaTime));
+        rigidbody.MoveRotation(Quaternion.Lerp(transform.rotation, Quaternion.Euler(item.CurrentRotateAngle),
+            item.AngularDamp * Time.deltaTime));
 
         
         //var moveDirection = transform.up * model.UpSpeed + transform.forward * model.ForwardSpeed;
         //rigidbody.MovePosition(transform.position + moveDirection*Time.deltaTime);
 
-        PhysicsUtility.RigidbodyMoveForward(rigidbody,model.ForwardSpeed);
-        PhysicsUtility.RigidbodyMoveUpward(rigidbody,model.UpSpeed);
+        PhysicsUtility.RigidbodyMoveForward(rigidbody,item.ForwardSpeed);
+        PhysicsUtility.RigidbodyMoveUpward(rigidbody,item.UpSpeed);
        
-        ServerRollPitch(model);
+        ServerRollPitch(item);
 
     }
 
     [ServerCallback]
     private void OnCollisionEnter(Collision other) {
-        SpaceshipModel model = vehicleModel as SpaceshipModel;
-        model.UpSpeed *= -1;
-        model.ForwardSpeed *= -1;
-        model.AngularVelocity *= -1;
+        SpaceshipItem item = VehicleItem as SpaceshipItem;
+        item.UpSpeed *= -1;
+        item.ForwardSpeed *= -1;
+        item.AngularVelocity *= -1;
     }
 
     [ServerCallback]
-    private void ServerRollPitch(SpaceshipModel model) {
+    private void ServerRollPitch(SpaceshipItem item) {
         avatar.localRotation = Quaternion.Lerp(avatar.localRotation, Quaternion.Euler(
-                model.UpAngle * -upAxis, 0,  model.RotateAngle * -rotateAxis),
-            model.AngleInterpolate * Time.deltaTime);
+                item.UpAngle * -upAxis, 0,  item.RotateAngle * -rotateAxis),
+            item.AngleInterpolate * Time.deltaTime);
     }
 
 

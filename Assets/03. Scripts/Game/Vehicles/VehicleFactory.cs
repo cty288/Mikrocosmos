@@ -28,8 +28,8 @@ public class VehicleFactory{
 
                 if (id == (int) SpaceshipType.SeriesC) {
                     spawnedGameObject = GameEntrance.Singleton.POOL_SeriesC.Allocate();
-                    SpaceshipModel model = CreateSpaceshipModel(currentSpaceshipConfig);
-                    spawnedGameObject.GetComponent<Spaceship>().SetVehicleModel(model);
+                    SpaceshipItem item = CreateSpaceshipModel(currentSpaceshipConfig);
+                    spawnedGameObject.GetComponent<Spaceship>().SetVehicleModel(item);
                     return spawnedGameObject;
                 }
                 break;
@@ -39,8 +39,8 @@ public class VehicleFactory{
         return null;
     }
 
-    private static SpaceshipModel CreateSpaceshipModel(SpaceshipConfig currentSpaceshipConfig) {
-        SpaceshipModel model = new SpaceshipModel()
+    private static SpaceshipItem CreateSpaceshipModel(SpaceshipConfig currentSpaceshipConfig) {
+        SpaceshipItem item = new SpaceshipItem()
         {
             ForwardAcceleration = currentSpaceshipConfig.ForwardAcceleration,
             MaxForwardSpeed = currentSpaceshipConfig.MaxForwardSpeed,
@@ -64,6 +64,6 @@ public class VehicleFactory{
             AngleInterpolate = currentSpaceshipConfig.AngleInterpolate
         };
 
-        return model;
+        return item;
     }
 }

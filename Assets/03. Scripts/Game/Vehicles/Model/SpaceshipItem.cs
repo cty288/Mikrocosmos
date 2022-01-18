@@ -4,7 +4,7 @@ using Mirror;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class SpaceshipModel : VehicleModel
+public class SpaceshipItem : VehicleItem
 {
     public float attack;
 

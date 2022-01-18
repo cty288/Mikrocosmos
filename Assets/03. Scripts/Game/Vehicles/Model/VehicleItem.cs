@@ -5,7 +5,7 @@ using MikroFramework.Architecture;
 using Mirror;
 using UnityEngine;
 
-public class VehicleModel {
+public class VehicleItem {
 
     public int Id;
 

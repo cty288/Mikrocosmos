@@ -553,7 +553,7 @@ MonoBehaviour:
   offlineScene: 
   onlineScene: 
   transport: {fileID: 932251780}
-  networkAddress: 173.56.8.174
+  networkAddress: 127.0.0.1
   maxConnections: 100000
   disconnectInactiveConnections: 0
   disconnectInactiveTimeout: 60

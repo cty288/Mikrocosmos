@@ -8,7 +8,7 @@ using UnityEngine;
 
 public abstract class Vehicle : AbstractNetworkedController<MikrocosmosArchitecture> {
     //[SyncVar]
-    protected VehicleModel vehicleModel;
+    protected VehicleItem VehicleItem;
 
 
     protected Rigidbody rigidbody;
@@ -23,10 +23,10 @@ public abstract class Vehicle : AbstractNetworkedController<MikrocosmosArchitect
         }
 
         if (isServer) {
-            if (vehicleModel != null) {
+            if (VehicleItem != null) {
                 //move
                 //  Debug.Log(rigidbody==null);
-                PhysicsUtility.RigidbodyMoveForward(rigidbody,vehicleModel.ForwardSpeed);
+                PhysicsUtility.RigidbodyMoveForward(rigidbody,VehicleItem.ForwardSpeed);
                 
                 ServerMoveControl();
             }
@@ -35,8 +35,8 @@ public abstract class Vehicle : AbstractNetworkedController<MikrocosmosArchitect
     }
 
     [ServerCallback]
-    public void SetVehicleModel(VehicleModel model) {
-        this.vehicleModel = model;
+    public void SetVehicleModel(VehicleItem item) {
+        this.VehicleItem = item;
     }
 
     public override void OnStartClient() {
